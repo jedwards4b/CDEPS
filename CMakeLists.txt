@@ -28,6 +28,7 @@ else ()
     INSTALL_COMMAND "")
   ExternalProject_Get_Property (cime SOURCE_DIR)
   set (CIMEROOT ${SOURCE_DIR})
+  set (BLD_STANDALONE TRUE)
   unset (SOURCE_DIR)
 endif ()
 
