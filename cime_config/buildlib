@@ -44,6 +44,9 @@ def buildlib(bldroot, libroot, case, compname=None):
     exe_root = case.get_value("EXEROOT")
 
     if compname:
+        compclass = compname.upper()
+        nthrds = case.get_value("NTHRDS_{}".format(compclass))
+        expect(nthrds == 1,"CDEPS does not implement openmp threading, reset NTHRDS_{} to 1".format(compclass))
         s, o, e = run_cmd("make d{}".format(compname), from_dir=bldroot, verbose=True)
         libname = "lib{}.a".format(compname)
         dlibname = "libd{}.a".format(compname)

@@ -1232,7 +1232,6 @@ contains
        close(nu)
        write(logunit,F00)' writing ',trim(rest_file_model), ymd, tod
     endif
-
     ! write data model restart data
     rcode = pio_createfile(sdat%pio_subsystem, pioid, sdat%io_type, trim(rest_file_model), pio_clobber)
     rcode = pio_put_att(pioid, pio_global, "version", "nuopc_data_models_v0")
@@ -1248,9 +1247,11 @@ contains
        call pio_write_darray(pioid, varid, pio_iodesc, fld, rcode, fillval=shr_const_spval)
     endif
     call pio_closefile(pioid)
+
     if (present(fld) .and. present(fldname)) then
        call pio_freedecomp(sdat%pio_subsystem, pio_iodesc)
     endif
+
 
   end subroutine dshr_restart_write
 
