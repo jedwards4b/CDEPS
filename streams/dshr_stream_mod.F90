@@ -123,7 +123,7 @@ contains
   subroutine shr_stream_init_from_xml(xmlfilename, streamdat, isroot_task, logunit, compname, rc)
 
     use FoX_DOM, only : extractDataContent, destroy, Node, NodeList, parseFile, getElementsByTagname
-    use FoX_DOM, only : getLength, item
+    use FoX_DOM, only : getLength, item, destroyNode
     use ESMF, only : ESMF_VM, ESMF_VMGetCurrent, ESMF_VMBroadCast, ESMF_SUCCESS
 
     ! ---------------------------------------------------------------------
@@ -282,7 +282,7 @@ contains
              streamdat(i)%varlist(n)%nameinmodel = tmpstr(index(trim(tmpstr), " ", .true.)+1:)
           enddo
        enddo
-       call destroy(Sdoc)
+       call destroyNode(Sdoc)
     endif
 
     ! allocate streamdat instance on all tasks
@@ -1238,7 +1238,7 @@ contains
     if (ichar(lcal(n:n)) == 0 ) lcal(n:n) = ' '
     call shr_string_leftalign_and_convert_tabs(lcal)
     calendar = trim(shr_cal_calendarName(trim(lcal)))
-    
+
     ! TODO: add isroot_task
     !write(strm%logunit, '(a)') trim(subname)//' closing stream filename = '//trim(filename)
     call pio_closefile(strm%file(k)%fileid)
