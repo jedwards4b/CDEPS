@@ -757,6 +757,7 @@ contains
 
   !===============================================================================
   subroutine shr_strdata_advance(sdat, ymd, tod, logunit, istr, timers, rc)
+    use shr_const_mod         , only : r8fill => SHR_CONST_SPVAL
 
     ! -------------------------------------------------------
     ! Mismatching calendars: 4 cases
@@ -1017,12 +1018,16 @@ contains
                    call dshr_fldbun_getfldptr(sdat%pstrm(ns)%fldbun_data(stream_index), &
                         sdat%pstrm(ns)%fldlist_model(nf), fldptr2=dataptr2d_lb, rc=rc)
                    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-                   do i = 1,size(dataptr2d,dim=2)
-                      if (coszen(i) > solZenMin) then
-                         dataptr2d(:,i) = dataptr2d_lb(:,i)*coszen(i)/sdat%tavCoszen(i)
-                      else
-                         dataptr2d(:,i) = 0._r8
-                      endif
+                   do lev = 1,size(dataptr2d,dim=2)
+                      do i = 1,size(dataptr2d, dim=1)
+                         if (dataptr2d(i, lev) == r8fill .or. dataptr2d_lb(i, lev) == r8fill) then
+                            dataptr2d(i, lev) = r8fill
+                         else if (coszen(i) > solZenMin) then
+                            dataptr2d(i, lev) = dataptr2d_lb(i, lev)*coszen(i)/sdat%tavCoszen(i)
+                         else
+                            dataptr2d(i, lev) = 0._r8
+                         endif
+                      end do
                    end do
                 else
                    call dshr_fldbun_getfldptr(sdat%pstrm(ns)%fldbun_model, &
@@ -1032,7 +1037,9 @@ contains
                         sdat%pstrm(ns)%fldlist_model(nf), fldptr1=dataptr1d_lb, rc=rc)
                    if (ChkErr(rc,__LINE__,u_FILE_u)) return
                    do i = 1,size(dataptr1d)
-                      if (coszen(i) > solZenMin) then
+                      if (dataptr1d(i) == r8fill .or. dataptr1d_lb(i) == r8fill) then
+                         dataptr1d(i) = r8fill
+                      else if (coszen(i) > solZenMin) then
                          dataptr1d(i) = dataptr1d_lb(i)*coszen(i)/sdat%tavCoszen(i)
                       else
                          dataptr1d(i) = 0._r8
@@ -1071,7 +1078,13 @@ contains
                         sdat%pstrm(ns)%fldlist_model(nf), fldptr2=dataptr2d_ub, rc=rc)
                    if (ChkErr(rc,__LINE__,u_FILE_u)) return
                    do lev = 1,sdat%pstrm(ns)%stream_nlev
-                      dataptr2d(lev,:) = dataptr2d_lb(lev,:) * flb + dataptr2d_ub(lev,:) * fub
+                      do i = 1, size(dataptr2d, dim=2)
+                         if(dataptr2d(lev, i) == r8fill .or. dataptr2d_lb(lev, i) == r8fill) then
+                            dataptr2d(lev, i) = r8fill
+                         else
+                            dataptr2d(lev,:) = dataptr2d_lb(lev,:) * flb + dataptr2d_ub(lev,:) * fub
+                         endif
+                      end do
                    end do
                 else
                    call dshr_fldbun_getfldptr(sdat%pstrm(ns)%fldbun_model, &
@@ -1083,7 +1096,13 @@ contains
                    call dshr_fldbun_getfldptr(sdat%pstrm(ns)%fldbun_data(sdat%pstrm(ns)%stream_ub), &
                         sdat%pstrm(ns)%fldlist_model(nf), fldptr1=dataptr1d_ub, rc=rc)
                    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-                   dataptr1d(:) = dataptr1d_lb(:) * flb + dataptr1d_ub(:) * fub
+                   do i=1, size(dataptr1d)
+                      if (dataptr1d(i) == r8fill .or. dataptr1d_lb(i) == r8fill .or. dataptr1d_ub(i) == r8fill) then
+                         dataptr1d(i) = r8fill
+                      else
+                         dataptr1d(i) = dataptr1d_lb(i) * flb + dataptr1d_ub(i) * fub
+                      endif
+                   end do
                 end if
              end do
              call ESMF_TraceRegionExit(trim(lstr)//trim(timname)//'_tint')
