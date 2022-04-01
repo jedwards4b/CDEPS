@@ -89,6 +89,7 @@ def buildlib(bldroot, libroot, case):
     # Search SourceMods path for CDEPS files. We only look in the data component directories for these, files in cdeps share
     # directories should be added to one of the data component directories
     srcmodsdir = os.path.join(case.get_value("CASEROOT"),"SourceMods")
+    build_cdeps = False
     all_files_in_srcmods = []
     for comp_class in case.get_values("COMP_CLASSES"):
         if comp_class == "CPL":
@@ -97,6 +98,10 @@ def buildlib(bldroot, libroot, case):
         cdeps_comp_name = "d"+comp_class.lower()
         if comp == cdeps_comp_name:
             all_files_in_srcmods.extend(list(all_files_under(os.path.join(srcmodsdir,"src."+cdeps_comp_name))))
+            build_cdeps = True
+
+    if not build_cdeps:
+        return
 
     basenames1 = [os.path.basename(f) for f in all_src_files]
     basenames2 = [os.path.basename(f) for f in all_files_in_srcmods]
