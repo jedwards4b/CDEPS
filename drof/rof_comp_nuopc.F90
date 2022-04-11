@@ -78,7 +78,6 @@ module cdeps_drof_comp
 
   logical                      :: diagnose_data = .true.
   integer      , parameter     :: main_task=0                       ! task number of main task
-  character(*) , parameter     :: rpfile = 'rpointer.rof'
 #ifdef CESMCOUPLED
   character(*) , parameter     :: modName =  "(rof_comp_nuopc)"
 #else
@@ -288,7 +287,7 @@ contains
     call shr_cal_ymd2date(current_year, current_mon, current_day, current_ymd)
 
     ! Run drof
-    call drof_comp_run(exportstate, current_ymd, current_tod, restart_write=.false., rc=rc)
+    call drof_comp_run(exportstate, current_ymd, current_tod, restart_write=.false., currtime=currtime, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! Add scalars to export state
@@ -344,13 +343,13 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! run drof
-    call drof_comp_run(exportState, next_ymd, next_tod, restart_write, rc=rc)
+    call drof_comp_run(exportState, next_ymd, next_tod, restart_write, nextTime=nextTime, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
   end subroutine ModelAdvance
 
   !===============================================================================
-  subroutine drof_comp_run(exportState, target_ymd, target_tod, restart_write, rc)
+  subroutine drof_comp_run(exportState, target_ymd, target_tod, restart_write, currTime, nextTime, rc)
 
     ! --------------------------
     ! advance drof
@@ -362,10 +361,14 @@ contains
     integer          , intent(in)    :: target_tod       ! model sec into model date
     logical          , intent(in)    :: restart_write
     integer          , intent(out)   :: rc
+    type(ESMF_Time)  , intent(in), optional    :: currTime, nextTime
 
     ! local variables
     logical :: first_time = .true.
     integer :: n
+    integer :: yr, mon, day, sec
+    character(CL)   :: rpfile 
+    character(CL)   :: timestr
     character(*), parameter :: subName = "(drof_comp_run) "
     !-------------------------------------------------------------------------------
 
@@ -389,7 +392,11 @@ contains
        if (chkerr(rc,__LINE__,u_FILE_u)) return
 
        ! Read restart if needed
-       if (restart_read) then
+       if (restart_read .and. present(currTime)) then
+          call ESMF_TimeGet(currtime,yy=yr, mm=mon, dd=day, s=sec, rc=rc)
+          if (ChkErr(rc,__LINE__,u_FILE_u)) return
+          write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',sec
+          rpfile = 'rpointer.'//trim(timestr) //".rof"
           call dshr_restart_read(restfilm, rpfile, inst_suffix, nullstr, logunit, my_task, mpicom, sdat)
        end if
 
@@ -424,7 +431,11 @@ contains
     end select
 
     ! write restarts if needed
-    if (restart_write) then
+    if (restart_write .and. present(nexttime)) then
+       call ESMF_TimeGet(nexttime,yy=yr, mm=mon, dd=day, s=sec, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',sec
+       rpfile = 'rpointer.'//trim(timestr) //".rof"
        select case (trim(datamode))
        case('copyall')
           call dshr_restart_write(rpfile, case_name, 'drof', inst_suffix, target_ymd, target_tod, &
