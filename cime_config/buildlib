@@ -96,10 +96,7 @@ def buildlib(bldroot, libroot, case):
         cdeps_comp_name = "d"+comp_class.lower()
         if comp == cdeps_comp_name:
             all_files_in_srcmods.extend(list(all_files_under(os.path.join(srcmodsdir,"src."+cdeps_comp_name))))
-            build_cdeps = True
 
-    if not build_cdeps:
-        return
     logger.info("Running cmake for CDEPS")
     basenames1 = [os.path.basename(f) for f in all_src_files]
     basenames2 = [os.path.basename(f) for f in all_files_in_srcmods]

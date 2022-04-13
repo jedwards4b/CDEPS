@@ -30,7 +30,6 @@ module docn_datamode_copyall_mod
   real(r8) , parameter :: ocnsalt = shr_const_ocn_ref_sal ! ocean reference salinity
 
   character(*) , parameter :: nullstr = 'null'
-  character(*) , parameter :: rpfile  = 'rpointer.ocn'
   character(*) , parameter :: u_FILE_u = &
        __FILE__
 
@@ -131,7 +130,7 @@ contains
   !===============================================================================
   subroutine docn_datamode_copyall_restart_write(case_name, inst_suffix, ymd, tod, &
        logunit, my_task, sdat)
-
+    use shr_cal_mod, only: shr_cal_date2ymd
     ! input/output variables
     character(len=*)            , intent(in)    :: case_name
     character(len=*)            , intent(in)    :: inst_suffix
@@ -140,16 +139,24 @@ contains
     integer                     , intent(in)    :: logunit
     integer                     , intent(in)    :: my_task
     type(shr_strdata_type)      , intent(inout) :: sdat
+
+    character(CL)   :: rpfile, timestr
+    integer         :: yr, mon, day
+
     !-------------------------------------------------------------------------------
 
+    call shr_cal_date2ymd(ymd, yr, mon, day)
+    
+    write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',tod
+    rpfile = 'rpointer.'//trim(timestr) //".ocn"   
     call dshr_restart_write(rpfile, case_name, 'docn', inst_suffix, ymd, tod, &
          logunit, my_task, sdat)
 
   end subroutine docn_datamode_copyall_restart_write
 
   !===============================================================================
-  subroutine docn_datamode_copyall_restart_read(rest_filem, inst_suffix, logunit, my_task, mpicom, sdat)
-
+  subroutine docn_datamode_copyall_restart_read(rest_filem, inst_suffix, logunit, my_task, mpicom, sdat, clock)
+    use ESMF, only: ESMF_Time, ESMF_ClockGet, ESMF_TimeGet, ESMF_CLOCK
     ! input/output arguments
     character(len=*)            , intent(inout) :: rest_filem
     character(len=*)            , intent(in)    :: inst_suffix
@@ -157,7 +164,20 @@ contains
     integer                     , intent(in)    :: my_task
     integer                     , intent(in)    :: mpicom
     type(shr_strdata_type)      , intent(inout) :: sdat
+    type(ESMF_Clock)             , intent(in)    :: clock
+
+    type(ESMF_TIME) :: currtime
+    character(CL)   :: rpfile, timestr
+    integer         :: yr, mon, day, tod
+    integer         :: rc
     !-------------------------------------------------------------------------------
+
+    call ESMF_ClockGet(clock, currTime=currTime, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    call ESMF_TimeGet(currTime, yy=yr, mm=mon, dd=day, s=tod, rc=rc )
+
+    write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',tod
+    rpfile = 'rpointer.'//trim(timestr) //".ocn"   
 
     call dshr_restart_read(rest_filem, rpfile, inst_suffix, nullstr, logunit, my_task, mpicom, sdat)
 

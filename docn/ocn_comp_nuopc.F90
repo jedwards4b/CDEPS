@@ -486,11 +486,11 @@ contains
        if (restart_read) then
           select case (trim(datamode))
           case('sstdata', 'sst_aquap_file')
-             call docn_datamode_copyall_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call docn_datamode_copyall_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat, clock)
           case('iaf')
-             call docn_datamode_iaf_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call docn_datamode_iaf_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat, clock)
           case('som', 'som_aquap')
-             call docn_datamode_som_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call docn_datamode_som_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat, clock)
           end select
        end if
 

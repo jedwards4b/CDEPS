@@ -145,7 +145,6 @@ module cdeps_datm_comp
   integer                      :: idt                                 ! integer model timestep
   logical                      :: diagnose_data = .true.
   integer          , parameter :: main_task   = 0                   ! task number of main task
-  character(len=*) , parameter :: rpfile        = 'rpointer.atm'
 #ifdef CESMCOUPLED
   character(*)     , parameter :: modName       = "(atm_comp_nuopc)"
 #else
@@ -576,19 +575,19 @@ contains
        if (restart_read) then
           select case (trim(datamode))
           case('CORE2_NYF','CORE2_IAF')
-             call datm_datamode_core2_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call datm_datamode_core2_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, target_ymd, target_tod, sdat)
           case('CORE_IAF_JRA')
-             call datm_datamode_jra_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call datm_datamode_jra_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, target_ymd, target_tod, sdat)
           case('CLMNCEP')
-             call datm_datamode_clmncep_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call datm_datamode_clmncep_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, target_ymd, target_tod, sdat)
           case('CPLHIST')
-             call datm_datamode_cplhist_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call datm_datamode_cplhist_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, target_ymd, target_tod, sdat)
           case('ERA5')
-             call datm_datamode_era5_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call datm_datamode_era5_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, target_ymd, target_tod, sdat)
           case('GEFS')
-             call datm_datamode_gefs_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call datm_datamode_gefs_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, target_ymd, target_tod, sdat)
           case('CFSR')
-             call datm_datamode_cfsr_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call datm_datamode_cfsr_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, target_ymd, target_tod, sdat)
           end select
        end if
 

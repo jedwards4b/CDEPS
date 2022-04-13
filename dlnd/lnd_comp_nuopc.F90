@@ -95,7 +95,6 @@ module cdeps_dlnd_comp
   integer                      :: glc_nec
   logical                      :: diagnose_data = .true.
   integer      , parameter     :: main_task=0                   ! task number of main task
-  character(*) , parameter     :: rpfile = 'rpointer.lnd'
 #ifdef CESMCOUPLED
   character(*) , parameter     :: modName =  "(lnd_comp_nuopc)"
 #else
@@ -253,6 +252,8 @@ contains
     integer         :: current_mon  ! model month
     integer         :: current_day  ! model day
     integer         :: current_tod  ! model sec into model date
+    character(CL)   :: rpfile 
+    character(CL)   :: timestr
     character(len=*),parameter :: subname=trim(modName)//':(InitializeRealize) '
     !-------------------------------------------------------------------------------
 
@@ -277,17 +278,20 @@ contains
     call dlnd_comp_realize(importState, exportState, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    ! Read restart if necessary
-    if (restart_read) then
-       call dshr_restart_read(restfilm, rpfile, inst_suffix, nullstr, logunit, my_task, mpicom, sdat)
-    end if
-
     ! get the time to interpolate the stream data to
     call ESMF_ClockGet(clock, currTime=currTime, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call ESMF_TimeGet(currTime, yy=current_year, mm=current_mon, dd=current_day, s=current_tod, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(current_year, current_mon, current_day, current_ymd)
+
+    ! Read restart if necessary
+    if (restart_read) then
+       write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') current_year,'-',current_mon,'-',current_day,'-',current_tod
+       rpfile = 'rpointer.'//trim(timestr) //".lnd"
+       call dshr_restart_read(restfilm, rpfile, inst_suffix, nullstr, logunit, my_task, mpicom, sdat)
+    end if
+
 
     ! Run dlnd to create export state
     call dlnd_comp_run(importState, exportState, current_ymd, current_tod, rc=rc)
@@ -356,6 +360,8 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     if (write_restart) then
        call ESMF_TraceRegionEnter('dlnd_restart')
+       write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',next_tod
+       rpfile = 'rpointer.'//trim(timestr) //".lnd"
        call dshr_restart_write(rpfile, case_name, 'dlnd', inst_suffix, next_ymd, next_tod, &
             logunit, my_task, sdat)
        call ESMF_TraceRegionExit('dlnd_restart')

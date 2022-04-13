@@ -265,17 +265,20 @@ contains
     call dwav_comp_realize(importState, exportState, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    ! Read restart if necessary
-    if (restart_read) then
-       call dshr_restart_read(restfilm, rpfile, inst_suffix, nullstr, logunit, my_task, mpicom, sdat)
-    end if
-
     ! Get the time to interpolate the stream data to
     call ESMF_ClockGet(clock, currTime=currTime, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call ESMF_TimeGet(currTime, yy=current_year, mm=current_mon, dd=current_day, s=current_tod, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(current_year, current_mon, current_day, current_ymd)
+
+    ! Read restart if necessary
+    if (restart_read) then
+       write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') current_year,'-',current_mon,'-',current_day,'-',current_tod
+       rpfile = 'rpointer.'//trim(timestr) //".wav"
+       call dshr_restart_read(restfilm, rpfile, inst_suffix, nullstr, logunit, my_task, mpicom, sdat)
+    end if
+
 
     ! Run dwav to create export state
     call dwav_comp_run(logunit, current_ymd, current_tod, sdat, rc=rc)
@@ -341,6 +344,8 @@ contains
        call ESMF_TraceRegionEnter('dwav_restart')
        call NUOPC_CompAttributeGet(gcomp, name='case_name', value=case_name, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',next_tod
+       rpfile = 'rpointer.'//trim(timestr) //".wav"
 
        call dshr_restart_write(rpfile, case_name, 'dwav', inst_suffix, next_ymd, next_tod, &
             logunit, my_task, sdat)

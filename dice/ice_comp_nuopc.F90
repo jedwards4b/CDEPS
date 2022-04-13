@@ -473,7 +473,8 @@ contains
        if (restart_read) then
           select case (trim(datamode))
           case('ssmi', 'ssmi_iaf')
-             call dice_datamode_ssmi_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, sdat)
+             call dice_datamode_ssmi_restart_read(restfilm, inst_suffix, logunit, my_task, mpicom, &
+                  target_ymd, target_tod, sdat)
           end select
        end if
 

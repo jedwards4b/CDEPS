@@ -53,7 +53,6 @@ module datm_datamode_gefs_mod
   real(r8) , parameter :: rhofw    = SHR_CONST_RHOFW ! density of fresh water ~ kg/m^3
   
   character(*), parameter :: nullstr = 'undefined'
-  character(*), parameter :: rpfile  = 'rpointer.atm'
   character(*), parameter :: u_FILE_u = &
        __FILE__
 
@@ -217,7 +216,8 @@ contains
   !===============================================================================
   subroutine datm_datamode_gefs_restart_write(case_name, inst_suffix, ymd, tod, &
        logunit, my_task, sdat)
-    
+    use shr_cal_mod, only: shr_cal_date2ymd
+
     ! input/output variables
     character(len=*)            , intent(in)    :: case_name
     character(len=*)            , intent(in)    :: inst_suffix
@@ -227,6 +227,12 @@ contains
     integer                     , intent(in)    :: my_task
     type(shr_strdata_type)      , intent(inout) :: sdat
     !-------------------------------------------------------------------------------
+    character(CL) :: rpfile, timestr
+    integer         :: yr, mon, day
+    call shr_cal_date2ymd(ymd, yr, mon, day)
+    
+    write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',tod
+    rpfile = 'rpointer.'//trim(timestr) //".atm"   
 
     call dshr_restart_write(rpfile, case_name, 'datm', inst_suffix, ymd, tod, &
          logunit, my_task, sdat)
@@ -234,7 +240,9 @@ contains
   end subroutine datm_datamode_gefs_restart_write
 
   !===============================================================================
-  subroutine datm_datamode_gefs_restart_read(rest_filem, inst_suffix, logunit, my_task, mpicom, sdat)
+  subroutine datm_datamode_gefs_restart_read(rest_filem, inst_suffix, logunit, my_task, mpicom,&
+       ymd, tod, sdat)
+    use shr_cal_mod, only: shr_cal_date2ymd
 
     ! input/output arguments
     character(len=*)            , intent(inout) :: rest_filem
@@ -242,8 +250,15 @@ contains
     integer                     , intent(in)    :: logunit
     integer                     , intent(in)    :: my_task
     integer                     , intent(in)    :: mpicom
+    integer                     , intent(in)    :: ymd, tod
     type(shr_strdata_type)      , intent(inout) :: sdat
     !-------------------------------------------------------------------------------
+    character(CL) :: rpfile, timestr
+    integer         :: yr, mon, day
+    call shr_cal_date2ymd(ymd, yr, mon, day)
+    
+    write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',tod
+    rpfile = 'rpointer.'//trim(timestr) //".atm"   
 
     call dshr_restart_read(rest_filem, rpfile, inst_suffix, nullstr, logunit, my_task, mpicom, sdat)
 

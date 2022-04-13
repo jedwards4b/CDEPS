@@ -102,7 +102,6 @@ module dice_datamode_ssmi_mod
   real(r8) , parameter :: waterMax = 1000.0_r8        ! wrt iFrac comp & frazil ice (kg/m^2)
 
   character(*) , parameter :: nullstr = 'null'
-  character(*) , parameter :: rpfile  = 'rpointer.ice'
   character(*) , parameter :: u_FILE_u = &
        __FILE__
 
@@ -569,6 +568,7 @@ contains
   !===============================================================================
   subroutine dice_datamode_ssmi_restart_write(case_name, inst_suffix, ymd, tod, &
        logunit, my_task, sdat)
+    use shr_cal_mod, only: shr_cal_date2ymd
 
     ! input/output variables
     character(len=*)            , intent(in)    :: case_name
@@ -579,6 +579,12 @@ contains
     integer                     , intent(in)    :: my_task
     type(shr_strdata_type)      , intent(inout) :: sdat
     !-------------------------------------------------------------------------------
+    character(CL) :: rpfile, timestr
+    integer         :: yr, mon, day
+    call shr_cal_date2ymd(ymd, yr, mon, day)
+    
+    write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',tod
+    rpfile = 'rpointer.'//trim(timestr) //".ice"   
 
     call dshr_restart_write(rpfile, case_name, 'dice', inst_suffix, ymd, tod, &
          logunit, my_task, sdat, fld=water, fldname='water')
@@ -586,7 +592,9 @@ contains
   end subroutine dice_datamode_ssmi_restart_write
 
   !===============================================================================
-  subroutine dice_datamode_ssmi_restart_read(rest_filem, inst_suffix, logunit, my_task, mpicom, sdat)
+  subroutine dice_datamode_ssmi_restart_read(rest_filem, inst_suffix, logunit, my_task, mpicom, &
+       ymd, tod, sdat)
+    use shr_cal_mod, only: shr_cal_date2ymd
 
     ! input/output arguments
     character(len=*)            , intent(inout) :: rest_filem
@@ -594,8 +602,15 @@ contains
     integer                     , intent(in)    :: logunit
     integer                     , intent(in)    :: my_task
     integer                     , intent(in)    :: mpicom
+    integer                     , intent(in)    :: ymd, tod
     type(shr_strdata_type)      , intent(inout) :: sdat
     !-------------------------------------------------------------------------------
+    character(CL) :: rpfile, timestr
+    integer         :: yr, mon, day
+    call shr_cal_date2ymd(ymd, yr, mon, day)
+
+    write(timestr,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') yr,'-',mon,'-',day,'-',tod
+    rpfile = 'rpointer.'//trim(timestr) //".ice"   
 
     ! allocate module memory for restart fields that are read in
     allocate(water(sdat%model_lsize))
