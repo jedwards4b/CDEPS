@@ -330,6 +330,8 @@ contains
     integer                 :: mon           ! month
     integer                 :: day           ! day in month
     logical                 :: write_restart
+    character(CL)   :: rpfile 
+    character(CL)   :: timestr
     character(len=*),parameter :: subname=trim(modName)//':(ModelAdvance) '
     !-------------------------------------------------------------------------------
 

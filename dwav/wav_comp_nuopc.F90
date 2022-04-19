@@ -240,6 +240,8 @@ contains
     integer         :: current_mon  ! model month
     integer         :: current_day  ! model day
     integer         :: current_tod  ! model sec into model date
+    character(CL)   :: timestr
+    character(CL)   :: rpfile
     character(len=*), parameter :: subname=trim(modName)//':(InitializeRealize) '
     !-------------------------------------------------------------------------------
 
@@ -311,6 +313,8 @@ contains
     integer                 :: next_ymd      ! model date
     integer                 :: next_tod      ! model sec into model date
     logical                 :: write_restart
+    character(CL)           :: timestr
+    character(CL)           :: rpfile
     character(len=*),parameter :: subname=trim(modName)//':(ModelAdvance) '
     !-------------------------------------------------------------------------------
 
