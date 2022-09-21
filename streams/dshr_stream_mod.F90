@@ -414,19 +414,19 @@ contains
        streamdat(i)%pio_iotype = io_type
        streamdat(i)%pio_ioformat = io_format
 #endif
+       ! Set logunit
+       streamdat(i)%logunit = logunit
+
        call shr_stream_getCalendar(streamdat(i), 1, streamdat(i)%calendar)
 
        ! Error check
        if (trim(streamdat(i)%taxmode) == shr_stream_taxis_extend .and. streamdat(i)%dtlimit < 1.e10) then
           call shr_sys_abort(trim(subName)//" ERROR: if taxmode value is extend set dtlimit to 1.e30")
        end if
+       ! initialize flag that stream has been set
+       streamdat(i)%init = .true.
     enddo
 
-    ! Set logunit
-    streamdat(:)%logunit = logunit
-
-    ! initialize flag that stream has been set
-    streamdat(:)%init = .true.
 
   end subroutine shr_stream_init_from_xml
 
@@ -523,12 +523,11 @@ contains
        streamdat(1)%varlist(n)%nameinmodel = trim(stream_fldlistModel(n))
     end do
 
+    ! Initialize logunit
+    streamdat(:)%logunit = logunit
     ! Get stream calendar
     call shr_stream_getCalendar(streamdat(1), 1, calendar)
     streamdat(1)%calendar = trim(calendar)
-
-    ! Initialize logunit
-    streamdat(1)%logunit = logunit
 
     ! Initialize flag that stream has been set
     streamdat(1)%init = .true.
@@ -707,6 +706,9 @@ contains
       streamdat(i)%pio_subsystem => pio_subsystem
       streamdat(i)%pio_iotype = io_type
       streamdat(i)%pio_ioformat = io_format
+      ! Set logunit
+      streamdat(i)%logunit = logunit
+
       call shr_stream_getCalendar(streamdat(i), 1, streamdat(i)%calendar)
 
       ! Error check
@@ -715,9 +717,6 @@ contains
       end if
 
     enddo ! end loop nstrm
-
-    ! Set logunit
-    streamdat(:)%logunit = logunit
 
     ! initialize flag that stream has been set
     streamdat(:)%init = .true.
@@ -1468,6 +1467,8 @@ contains
   !===============================================================================
   subroutine shr_stream_getCalendar(strm, k, calendar)
     use pio, only : PIO_set_log_level, PIO_OFFSET_KIND
+    use ESMF, only: ESMF_VM, ESMF_VMGet, ESMF_VMGetCurrent
+
     ! Returns calendar name
 
     ! input/output parameters:
@@ -1476,6 +1477,8 @@ contains
     character(*)                ,intent(out)   :: calendar ! calendar name
 
     ! local
+    type(ESMF_VM)          :: vm
+    integer                :: myid
     integer                :: vid, n
     character(CL)          :: fileName
     character(CL)          :: lcal
@@ -1483,12 +1486,19 @@ contains
     integer                :: old_handle
     integer                :: rCode
     integer :: ierr
+    integer :: rc
     character(*),parameter :: subName = '(shr_stream_getCalendar) '
     !-------------------------------------------------------------------------------
 
     lcal = ' '
     calendar = ' '
     if (k > strm%nfiles) call shr_sys_abort(subname//' ERROR: k gt nfiles')
+
+    call ESMF_VMGetCurrent(vm, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+    call ESMF_VMGet(vm, localPet=myid, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     fileName  = strm%file(k)%name
     ! TODO strm logunit is not set 
@@ -1523,8 +1533,8 @@ contains
     call shr_string_leftalign_and_convert_tabs(lcal)
     calendar = trim(shr_cal_calendarName(trim(lcal)))
 
-    ! TODO: add isroot_task
-    !write(strm%logunit, '(a)') trim(subname)//' closing stream filename = '//trim(filename)
+
+    if(myid == 0) write(strm%logunit, '(a)') trim(subname)//' closing stream filename = '//trim(filename)
     call pio_closefile(strm%file(k)%fileid)
 
   end subroutine shr_stream_getCalendar
@@ -1709,9 +1719,11 @@ contains
 
        rcode = pio_def_dim(pioid, 'strlen',   CL, dimid_str)
        do k=1,size(streams)
+          ! maxnfiles is the maximum number of files across all streams
           if (streams(k)%nfiles > maxnfiles) then
              maxnfiles = streams(k)%nfiles
           endif
+          ! maxnt is the maximum number of time samples across all possible stream files
           do n=1,streams(k)%nFiles
              if( streams(k)%file(n)%nt > maxnt) then
                 maxnt = streams(k)%file(n)%nt
