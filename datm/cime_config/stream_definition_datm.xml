@@ -4579,20 +4579,20 @@
       <file first_year="$DATM_YR_START" last_year="$DATM_YR_END">$DATM_CPLHIST_DIR/$DATM_CPLHIST_CASE.cpl.ha2x1d.%ym.nc</file>
     </stream_datafiles>
     <stream_datavars>
-      <var>a2x1d_Faxa_bcphiwet  Faxa_bcphiwet</var>
-      <var>a2x1d_Faxa_bcphodry  Faxa_bcphodry</var>
-      <var>a2x1d_Faxa_bcphidry  Faxa_bcphidry</var>
-      <var>a2x1d_Faxa_ocphiwet  Faxa_ocphiwet</var>
-      <var>a2x1d_Faxa_ocphidry  Faxa_ocphidry</var>
-      <var>a2x1d_Faxa_ocphodry  Faxa_ocphodry</var>
-      <var>a2x1d_Faxa_dstwet1   Faxa_dstwet1</var>
-      <var>a2x1d_Faxa_dstdry1   Faxa_dstdry1</var>
-      <var>a2x1d_Faxa_dstwet2   Faxa_dstwet2</var>
-      <var>a2x1d_Faxa_dstdry2   Faxa_dstdry2</var>
-      <var>a2x1d_Faxa_dstwet3   Faxa_dstwet3</var>
-      <var>a2x1d_Faxa_dstdry3   Faxa_dstdry3</var>
-      <var>a2x1d_Faxa_dstwet4   Faxa_dstwet4</var>
-      <var>a2x1d_Faxa_dstdry4   Faxa_dstdry4</var>
+      <var>atmImp_Faxa_bcph3  Faxa_bcphiwet</var>
+      <var>atmImp_Faxa_bcph2  Faxa_bcphodry</var>
+      <var>atmImp_Faxa_bcph1  Faxa_bcphidry</var>
+      <var>atmImp_Faxa_ocph3  Faxa_ocphiwet</var>
+      <var>atmImp_Faxa_ocph2  Faxa_ocphidry</var>
+      <var>atmImp_Faxa_ocph1  Faxa_ocphodry</var>
+      <var>atmImp_Faxa_dstwet1   Faxa_dstwet1</var>
+      <var>atmImp_Faxa_dstdry1   Faxa_dstdry1</var>
+      <var>atmImp_Faxa_dstwet2   Faxa_dstwet2</var>
+      <var>atmImp_Faxa_dstdry2   Faxa_dstdry2</var>
+      <var>atmImp_Faxa_dstwet3   Faxa_dstwet3</var>
+      <var>atmImp_Faxa_dstdry3   Faxa_dstdry3</var>
+      <var>atmImp_Faxa_dstwet4   Faxa_dstwet4</var>
+      <var>atmImp_Faxa_dstdry4   Faxa_dstdry4</var>
     </stream_datavars>
     <stream_lev_dimname>null</stream_lev_dimname>
     <stream_mapalgo>
@@ -4623,7 +4623,7 @@
       <file first_year="$DATM_YR_START" last_year="$DATM_YR_END">$DATM_CPLHIST_DIR/$DATM_CPLHIST_CASE.cpl.ha2x1d.%ym.nc</file>
     </stream_datafiles>
     <stream_datavars>
-      <var>a2x1d_Faxa_ndep  Faxa_ndep</var>
+      <var>atmImp_Faxa_ndep  Faxa_ndep</var>
     </stream_datavars>
     <stream_lev_dimname>null</stream_lev_dimname>
     <stream_mapalgo>
