@@ -1477,6 +1477,7 @@ contains
   subroutine shr_stream_getCalendar(strm, k, calendar)
     use pio, only : PIO_set_log_level, PIO_OFFSET_KIND
     use ESMF, only: ESMF_VM, ESMF_VMGet, ESMF_VMGetCurrent
+
     ! Returns calendar name
 
     ! input/output parameters:
@@ -1509,11 +1510,11 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     fileName  = strm%file(k)%name
-
+    ! TODO strm logunit is not set 
     if (.not. pio_file_is_open(strm%file(k)%fileid)) then
-       if(myid == 0) write(strm%logunit, '(a)') trim(subname)//' opening stream filename = '//trim(filename)
+       if(strm%logunit /= 6) write(strm%logunit, '(a)') trim(subname)//' opening stream filename = '//trim(filename)
        rcode = pio_openfile(strm%pio_subsystem, strm%file(k)%fileid, strm%pio_iotype, trim(filename))
-    else if(myid == 0) then
+    else if(strm%logunit /= 6) then
        write(strm%logunit, '(a)') trim(subname)//' reading stream filename = '//trim(filename)
     endif
 
