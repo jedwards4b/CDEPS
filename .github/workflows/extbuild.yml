@@ -35,10 +35,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/pnetcdf
-          key: ${{ runner.os }}-${{ env.PNETCDF_VERSION}}-pnetcdf1
+          key: ${{ runner.os }}-${{ env.PNETCDF_VERSION}}-pnetcdf
       - name: Build PNetCDF
         if: steps.cache-pnetcdf.outputs.cache-hit != 'true'
-        uses: ./.github/actions/buildpnetcdf
+        uses: NCAR/ParallelIO/.github/actions/buildpnetcdf
         with:
           pnetcdf_version: ${{ env.PNETCDF_VERSION }}
           install_prefix: $HOME/pnetcdf
@@ -47,10 +47,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/netcdf-fortran
-          key: ${{ runner.os }}-${{ env.NETCDF_FORTRAN_VERSION }}-netcdf-fortran1
+          key: ${{ runner.os }}-${{ env.NETCDF_FORTRAN_VERSION }}-netcdf-fortran
       - name: Build NetCDF Fortran
         if: steps.cache-netcdf-fortran.outputs.cache-hit != 'true'
-        uses: ./.github/actions/buildnetcdff
+        uses: NCAR/ParallelIO/.github/actions/buildnetcdff
         with:
           netcdf_fortran_version: ${{ env.NETCDF_FORTRAN_VERSION }}
           install_prefix: $HOME/netcdf-fortran
@@ -63,7 +63,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.ParallelIO_VERSION }}-parallelio
       - name: Build ParallelIO
         if: steps.cache-PARALLELIO.outputs.cache-hit != 'true'
-        uses: ./.github/actions/buildpio
+        uses: NCAR/ParallelIO/.github/actions/parallelio_cmake
         with:
           parallelio_version: ${{ env.ParallelIO_VERSION }}
           netcdf_c_path: /usr
