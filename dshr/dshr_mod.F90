@@ -1706,10 +1706,10 @@ contains
     end if
 
     ! init PIO
-    allocate(sdat%pio_subsystem)
-    if (my_task == main_task) write(logunit,*) trim(subname)//' : calling pio init'
-    call pio_init(my_task, mpicom, pio_numiotasks, 0, pio_stride, &
-                  pio_rearranger, sdat%pio_subsystem, base=pio_root)
+!    allocate(sdat%pio_subsystem)
+!    if (my_task == main_task) write(logunit,*) trim(subname)//' : calling pio init'
+!    call pio_init(my_task, mpicom, pio_numiotasks, 0, pio_stride, &
+!                  pio_rearranger, sdat%pio_subsystem, base=pio_root)
 
     ! PIO debug related options
     ! pio_debug_level
