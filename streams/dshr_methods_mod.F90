@@ -12,8 +12,8 @@ module dshr_methods_mod
   use ESMF         , only : ESMF_LogFoundError, ESMF_FieldRegrid, ESMF_Finalize, ESMF_FIELDSTATUS_COMPLETE
   use ESMF         , only : ESMF_TERMORDER_SRCSEQ, operator(/=)
   use ESMF         , only : ESMF_TraceRegionEnter, ESMF_TraceRegionExit
-  use shr_kind_mod , only : r8=>shr_kind_r8, cs=>shr_kind_cs, cl=>shr_kind_cl
-
+! this should be the only place in cdeps using shr_kind_mod, other cdeps modules should use kinds exported from this module.
+  use shr_kind_mod , only : CDEPS_REAL_KIND=>shr_kind_r8, cs=>shr_kind_cs, cl=>shr_kind_cl, cx=>shr_kind_cx, cxx=>shr_kind_cxx, i8=>shr_kind_i8
   implicit none
   public
 
@@ -47,8 +47,8 @@ contains
     ! input/output variables
     type(ESMF_State) ,          intent(in)              :: State
     character(len=*) ,          intent(in)              :: fldname
-    real(R8)         , pointer, intent(inout), optional :: fldptr1(:)
-    real(R8)         , pointer, intent(inout), optional :: fldptr2(:,:)
+    real(CDEPS_REAL_KIND)         , pointer, intent(inout), optional :: fldptr1(:)
+    real(CDEPS_REAL_KIND)         , pointer, intent(inout), optional :: fldptr2(:,:)
     logical          ,          intent(in),optional     :: allowNullReturn
     integer          ,          intent(out)             :: rc
 
@@ -102,8 +102,8 @@ contains
     type(ESMf_Field)                :: lfield
     integer                         :: fieldCount, lrank
     character(ESMF_MAXSTR) ,pointer :: lfieldnamelist(:)
-    real(r8), pointer               :: dataPtr1d(:)
-    real(r8), pointer               :: dataPtr2d(:,:)
+    real(CDEPS_REAL_KIND), pointer               :: dataPtr1d(:)
+    real(CDEPS_REAL_KIND), pointer               :: dataPtr2d(:,:)
     character(len=*),parameter      :: subname='(dshr_state_diagnose)'
     ! ----------------------------------------------
 
@@ -161,8 +161,8 @@ contains
     ! input/output variables
     type(ESMF_FieldBundle) , intent(in)              :: FB
     character(len=*)       , intent(in)              :: fldname
-    real(R8), pointer      , intent(inout), optional :: fldptr1(:)
-    real(R8), pointer      , intent(inout), optional :: fldptr2(:,:)
+    real(CDEPS_REAL_KIND), pointer      , intent(inout), optional :: fldptr1(:)
+    real(CDEPS_REAL_KIND), pointer      , intent(inout), optional :: fldptr2(:,:)
     integer                , intent(out),   optional :: rank
     type(ESMF_Field)       , intent(out),   optional :: field
     integer                , intent(out)             :: rc
@@ -404,8 +404,8 @@ contains
     ! local variables
     integer           :: lrank
     character(len=CS) :: lstring
-    real(R8), pointer :: dataPtr1d(:)
-    real(R8), pointer :: dataPtr2d(:,:)
+    real(CDEPS_REAL_KIND), pointer :: dataPtr1d(:)
+    real(CDEPS_REAL_KIND), pointer :: dataPtr2d(:,:)
     character(len=*),parameter      :: subname='(dshr_fldbun_FieldDiagnose)'
     ! ----------------------------------------------
 
@@ -460,8 +460,8 @@ contains
     integer                         :: fieldCount, lrank
     character(ESMF_MAXSTR), pointer :: lfieldnamelist(:)
     character(len=CL)               :: lstring
-    real(R8), pointer               :: dataPtr1d(:)
-    real(R8), pointer               :: dataPtr2d(:,:)
+    real(CDEPS_REAL_KIND), pointer               :: dataPtr1d(:)
+    real(CDEPS_REAL_KIND), pointer               :: dataPtr2d(:,:)
     character(len=*), parameter     :: subname='(dshr_fldbun_diagnose)'
     ! ----------------------------------------------
 
@@ -530,8 +530,8 @@ contains
 
     ! input/output variables
     type(ESMF_Field)  , intent(in)              :: field
-    real(r8), pointer , intent(inout), optional :: fldptr1(:)
-    real(r8), pointer , intent(inout), optional :: fldptr2(:,:)
+    real(CDEPS_REAL_KIND), pointer , intent(inout), optional :: fldptr1(:)
+    real(CDEPS_REAL_KIND), pointer , intent(inout), optional :: fldptr2(:,:)
     integer           , intent(out)  , optional :: rank
     logical           , intent(in)   , optional :: abort
     integer           , intent(out)             :: rc

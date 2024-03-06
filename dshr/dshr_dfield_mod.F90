@@ -2,11 +2,11 @@ module dshr_dfield_mod
 
   use ESMF             , only : ESMF_State, ESMF_FieldBundle, ESMF_MAXSTR, ESMF_SUCCESS
   use ESMF             , only : ESMF_FieldBundleGet, ESMF_ITEMORDER_ADDORDER, ESMF_Field
-  use shr_kind_mod     , only : r8=>shr_kind_r8, cs=>shr_kind_cs, cl=>shr_kind_cl, cxx=>shr_kind_cxx
+  
   use shr_sys_mod      , only : shr_sys_abort
   use dshr_strdata_mod , only : shr_strdata_type, shr_strdata_get_stream_count, shr_strdata_get_stream_fieldbundle
   use dshr_methods_mod , only : dshr_state_getfldptr, dshr_fldbun_getfieldn, dshr_field_getfldptr, dshr_fldbun_getFldPtr
-  use dshr_methods_mod , only : chkerr
+  use dshr_methods_mod , only : chkerr, CDEPS_REAL_KIND, cs, cl, cxx
 
   implicit none
   private
@@ -28,11 +28,11 @@ module dshr_dfield_mod
   ! Linked list node
   type, public :: dfield_type
      ! state data with no ungridded dimensions
-     real(r8), pointer          :: state_data1d(:) => null()
+     real(CDEPS_REAL_KIND), pointer          :: state_data1d(:) => null()
      integer                    :: stream_index = 0
      integer                    :: fldbun_index = 0
      ! state data with ungridded dimensions
-     real(r8), pointer          :: state_data2d(:,:) => null()
+     real(CDEPS_REAL_KIND), pointer          :: state_data2d(:,:) => null()
      integer, pointer           :: stream_indices(:) => null()
      integer, pointer           :: fldbun_indices(:) => null()
      ! linked list pointer
@@ -114,7 +114,7 @@ contains
     ! Set export state array pointer
     call dshr_state_getfldptr(State, fldname=trim(state_fld), fldptr1=dfield_new%state_data1d, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
-    dfield_new%state_data1d = 0.0_r8
+    dfield_new%state_data1d = 0.0_CDEPS_REAL_KIND
     if (mainproc) then
        write(logunit,110)'(dshr_addfield_add) setting pointer for export state '//trim(state_fld)
 110    format(a)
@@ -132,7 +132,7 @@ contains
     character(len=*)       , intent(in)    :: state_fld
     character(len=*)       , intent(in)    :: strm_fld
     type(ESMF_State)       , intent(inout) :: state
-    real(r8)               , pointer       :: state_ptr(:)
+    real(CDEPS_REAL_KIND)               , pointer       :: state_ptr(:)
     integer                , intent(in)    :: logunit
     logical                , intent(in)    :: mainproc
     integer                , intent(out)   :: rc
@@ -191,7 +191,7 @@ contains
     ! Set export state array pointer
     call dshr_state_getfldptr(State, fldname=trim(state_fld), fldptr1=dfield_new%state_data1d, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
-    dfield_new%state_data1d = 0.0_r8
+    dfield_new%state_data1d = 0.0_CDEPS_REAL_KIND
     if (mainproc) then
        write(logunit,110)'(dshr_addfield_add) setting pointer for export state '//trim(state_fld)
 110    format(a)
@@ -309,7 +309,7 @@ contains
     ! Set export state array pointer
     call dshr_state_getfldptr(State, fldname=trim(state_fld), fldptr2=dfield_new%state_data2d, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
-    dfield_new%state_data2d(:,:) = 0._r8
+    dfield_new%state_data2d(:,:) = 0.0_CDEPS_REAL_KIND
     if (mainproc) then
        write(logunit,*)'(dshr_addfield_add) setting pointer for export state '//trim(state_fld)
     end if
@@ -326,7 +326,7 @@ contains
     character(len=*)       , intent(in)    :: state_fld
     character(len=*)       , intent(in)    :: strm_flds(:)
     type(ESMF_State)       , intent(inout) :: state
-    real(r8)               , pointer       :: state_ptr(:,:)
+    real(CDEPS_REAL_KIND)               , pointer       :: state_ptr(:,:)
     integer                , intent(in)    :: logunit
     logical                , intent(in)    :: mainproc
     integer                , intent(out)   :: rc
@@ -413,7 +413,7 @@ contains
     ! Set export state array pointer
     call dshr_state_getfldptr(State, fldname=trim(state_fld), fldptr2=dfield_new%state_data2d, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
-    dfield_new%state_data2d(:,:) = 0._r8
+    dfield_new%state_data2d(:,:) = 0.0_CDEPS_REAL_KIND
     if (mainproc) then
        write(logunit,*)'(dshr_addfield_add) setting pointer for export state '//trim(state_fld)
     end if
@@ -437,7 +437,7 @@ contains
     type(ESMF_FieldBundle)     :: fldbun_model
     type(ESMF_field)           :: lfield
     type(dfield_type), pointer :: dfield
-    real(r8), pointer          :: data1d(:)
+    real(CDEPS_REAL_KIND), pointer          :: data1d(:)
     integer                    :: nf
     integer                    :: fldbun_index
     integer                    :: stream_index

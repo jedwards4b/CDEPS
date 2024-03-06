@@ -31,8 +31,7 @@ module dshr_mod
   use ESMF             , only : ESMF_TERMORDER_SRCSEQ, ESMF_FieldRegridStore, ESMF_SparseMatrixWrite
   use ESMF             , only : ESMF_Region_Flag, ESMF_REGION_TOTAL, ESMF_MAXSTR, ESMF_RC_NOT_VALID
   use ESMF             , only : ESMF_UtilStringUpperCase
-  use shr_kind_mod     , only : r8=>shr_kind_r8, cs=>shr_kind_cs, cl=>shr_kind_cl, cx=>shr_kind_cx, cxx=>shr_kind_cxx, i8=>shr_kind_i8
-  use shr_sys_mod      , only : shr_sys_abort
+  
   use shr_log_mod     , only : shr_log_setLogUnit
   use shr_cal_mod      , only : shr_cal_noleap, shr_cal_gregorian, shr_cal_calendarname
   use shr_cal_mod      , only : shr_cal_datetod2string, shr_cal_date2julian
@@ -43,8 +42,15 @@ module dshr_mod
 #endif
   use dshr_strdata_mod , only : shr_strdata_type, SHR_STRDATA_GET_STREAM_COUNT
   use shr_string_mod   , only : shr_string_toLower
-  use dshr_methods_mod , only : chkerr
-  use pio
+  use dshr_methods_mod , only : chkerr, CDEPS_REAL_KIND, CS, CL, CX, CXX, i8
+  use shr_sys_mod      , only : shr_sys_abort
+  use pio              , only : pio_createfile, pio_set_fill, PIO_FILL, pio_clobber, io_desc_t, pio_initdecomp, pio_read_darray
+  use pio              , only : PIO_IOTYPE_NETCDF, PIO_IOTYPE_NETCDF4C, PIO_IOTYPE_NETCDF4P, PIO_IOTYPE_PNETCDF
+  use pio              , only : PIO_64BIT_OFFSET, PIO_64BIT_DATA, PIO_REARR_BOX, PIO_REARR_COMM_COLL, PIO_REARR_COMM_FC_2D_ENABLE
+  use pio              , only : var_desc_t, file_desc_t, pio_global, pio_put_att, pio_def_dim, pio_def_var, pio_inq_varid
+  use pio              , only : pio_nowrite, pio_openfile, pio_double, pio_enddef, pio_write_darray, PIO_REARR_SUBSET
+  use pio              , only : pio_set_rearr_opts, PIO_REARR_COMM_FC_2D_DISABLE, PIO_REARR_COMM_FC_1D_COMP2IO, pio_freedecomp
+  use pio              , only : pio_rearr_comm_p2p, PIO_REARR_COMM_FC_1D_IO2COMP, pio_init, pio_closefile, pio_setdebuglevel
 
   implicit none
   public
@@ -71,9 +77,9 @@ module dshr_mod
   character(len=CL) :: orb_mode        ! attribute - orbital mode (nuopc attribute)
   integer           :: orb_iyear       ! attribute - orbital year (nuopc attribute)
   integer           :: orb_iyear_align ! attribute - associated with model year (nuopc attribute)
-  real(R8)          :: orb_obliq       ! attribute - obliquity in degrees (nuopc attribute)
-  real(R8)          :: orb_mvelp       ! attribute - moving vernal equinox longitude (nuopc attribute)
-  real(R8)          :: orb_eccen       ! attribute and update-  orbital eccentricity (nuopc attribute)
+  real(CDEPS_REAL_KIND)          :: orb_obliq       ! attribute - obliquity in degrees (nuopc attribute)
+  real(CDEPS_REAL_KIND)          :: orb_mvelp       ! attribute - moving vernal equinox longitude (nuopc attribute)
+  real(CDEPS_REAL_KIND)          :: orb_eccen       ! attribute and update-  orbital eccentricity (nuopc attribute)
   character(len=*) , parameter :: orb_fixed_year        = 'fixed_year'
   character(len=*) , parameter :: orb_variable_year     = 'variable_year'
   character(len=*) , parameter :: orb_fixed_parameters  = 'fixed_parameters'
@@ -256,7 +262,7 @@ contains
     character(len=*)           , intent(in)    :: model_maskfile
     type(ESMF_Mesh)            , intent(out)   :: model_mesh
     integer , pointer          , intent(out)   :: model_mask(:)
-    real(r8), pointer          , intent(out)   :: model_frac(:)
+    real(CDEPS_REAL_KIND), pointer          , intent(out)   :: model_frac(:)
     logical                    , intent(out)   :: read_restart
     integer                    , intent(out)   :: rc
 
@@ -265,14 +271,14 @@ contains
     logical                        :: mainproc
     type(ESMF_DistGrid)            :: distGrid
     integer                        :: my_task
-    real(r8)                       :: scol_lon
-    real(r8)                       :: scol_lat
+    real(CDEPS_REAL_KIND)                       :: scol_lon
+    real(CDEPS_REAL_KIND)                       :: scol_lat
     character(CL)                  :: cvalue
     integer                        :: lsize      ! local size of mesh
     type(ESMF_Array)               :: elemMaskArray
     logical                        :: isPresent, isSet
     logical                        :: exists     ! check for file existence
-    real(r8)                       :: scol_spval = -999._r8
+    real(CDEPS_REAL_KIND)                       :: scol_spval = -999._CDEPS_REAL_KIND
     character(*)    , parameter    :: F00 ="('(dshr_mesh_init) ',a)"
     character(len=*), parameter    :: subname='(dshr_mod:dshr_mesh_init)'
     ! ----------------------------------------------
@@ -378,7 +384,7 @@ contains
           if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
           ! Now set the fraction as just the real mask
-          model_frac(:) = real(model_mask(:), kind=r8)
+          model_frac(:) = real(model_mask(:), kind=CDEPS_REAL_KIND)
           call ESMF_ArrayDestroy(elemMaskArray, rc=rc)
           if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
@@ -400,19 +406,19 @@ contains
     ! input/output variables
     type(ESMF_GridComp)   , intent(inout) :: gcomp
     character(len=*)      , intent(in)    :: compname
-    real(r8)              , intent(inout) :: scol_lon
-    real(r8)              , intent(inout) :: scol_lat
+    real(CDEPS_REAL_KIND)              , intent(inout) :: scol_lon
+    real(CDEPS_REAL_KIND)              , intent(inout) :: scol_lat
     type(ESMF_Mesh)       , intent(out)   :: model_mesh
     integer , pointer     , intent(inout) :: model_mask(:)
-    real(r8), pointer     , intent(inout) :: model_frac(:)
+    real(CDEPS_REAL_KIND), pointer     , intent(inout) :: model_frac(:)
     integer               , intent(out)   :: rc
 
     ! local variables
     type(ESMF_Grid)                :: lgrid
     character(CL)                  :: cvalue
     integer                        :: maxIndex(2)
-    real(r8)                       :: mincornerCoord(2)
-    real(r8)                       :: maxcornerCoord(2)
+    real(CDEPS_REAL_KIND)                       :: mincornerCoord(2)
+    real(CDEPS_REAL_KIND)                       :: maxcornerCoord(2)
     character(len=*), parameter    :: subname='(dshr_mesh_create_single_column)'
     ! ----------------------------------------------
 
@@ -422,7 +428,7 @@ contains
     allocate(model_frac(1))
 
     if (compname == 'ATM') then
-       model_frac(1) = 1._r8
+       model_frac(1) = 1._CDEPS_REAL_KIND
        model_mask(1) = 1
     else if (compname == 'LND') then
        call NUOPC_CompAttributeGet(gcomp, name='scol_lndmask', value=cvalue, rc=rc)
@@ -445,10 +451,10 @@ contains
     ! Use center and come up with arbitrary area delta lon and lat = .1 degree
     maxIndex(1)       = 1                ! number of lons
     maxIndex(2)       = 1                ! number of lats
-    mincornerCoord(1) = scol_lon - .1_r8 ! min lon
-    mincornerCoord(2) = scol_lat - .1_r8 ! min lat
-    maxcornerCoord(1) = scol_lon + .1_r8 ! max lon
-    maxcornerCoord(2) = scol_lat + .1_r8 ! max lat
+    mincornerCoord(1) = scol_lon - .1_CDEPS_REAL_KIND ! min lon
+    mincornerCoord(2) = scol_lat - .1_CDEPS_REAL_KIND ! min lat
+    maxcornerCoord(1) = scol_lon + .1_CDEPS_REAL_KIND ! max lon
+    maxcornerCoord(2) = scol_lat + .1_CDEPS_REAL_KIND ! max lat
 
     ! create the model grid
     lgrid = ESMF_GridCreateNoPeriDimUfrm (maxindex=maxindex, &
@@ -967,7 +973,7 @@ contains
     integer                     , intent(in)    :: my_task
     integer                     , intent(in)    :: mpicom
     type(shr_strdata_type)      , intent(inout) :: sdat
-    real(r8)         , optional , pointer       :: fld(:)
+    real(CDEPS_REAL_KIND)         , optional , pointer       :: fld(:)
     character(len=*) , optional , intent(in)    :: fldname
 
     ! local variables
@@ -1052,7 +1058,7 @@ contains
     integer                     , intent(in)    :: logunit
     integer                     , intent(in)    :: my_task
     type(shr_strdata_type)      , intent(inout) :: sdat
-    real(r8)         , optional , pointer       :: fld(:)
+    real(CDEPS_REAL_KIND)         , optional , pointer       :: fld(:)
     character(len=*) , optional , intent(in)    :: fldname
 
     ! local variables
@@ -1142,7 +1148,7 @@ contains
     ! input/output variables
     type(ESMF_State), intent(in)     :: state
     integer,          intent(in)     :: scalar_id
-    real(r8),         intent(out)    :: scalar_value
+    real(CDEPS_REAL_KIND),         intent(out)    :: scalar_value
     character(len=*), intent(in)     :: flds_scalar_name
     integer,          intent(in)     :: flds_scalar_num
     integer,          intent(inout)  :: rc
@@ -1151,8 +1157,8 @@ contains
     integer           :: mytask
     type(ESMF_VM)     :: vm
     type(ESMF_Field)  :: field
-    real(r8), pointer :: farrayptr(:,:)
-    real(r8)          :: tmp(1)
+    real(CDEPS_REAL_KIND), pointer :: farrayptr(:,:)
+    real(CDEPS_REAL_KIND)          :: tmp(1)
     character(len=*), parameter :: subname='(state_getscalar)'
     ! ----------------------------------------------
 
@@ -1190,7 +1196,7 @@ contains
     ! ----------------------------------------------
 
     ! input/output arguments
-    real(r8),         intent(in)     :: scalar_value
+    real(CDEPS_REAL_KIND),         intent(in)     :: scalar_value
     integer,          intent(in)     :: scalar_id
     type(ESMF_State), intent(inout)  :: State
     character(len=*), intent(in)     :: flds_scalar_name
@@ -1201,7 +1207,7 @@ contains
     integer           :: mytask
     type(ESMF_Field)  :: lfield
     type(ESMF_VM)     :: vm
-    real(r8), pointer :: farrayptr(:,:)
+    real(CDEPS_REAL_KIND), pointer :: farrayptr(:,:)
     character(len=*), parameter :: subname='(state_setscalar)'
     ! ----------------------------------------------
 
@@ -1335,10 +1341,10 @@ contains
     type(ESMF_Time)  , intent(in)    :: Time
     integer          , intent(in)    :: logunit
     logical          , intent(in)    :: maintask
-    real(R8)         , intent(inout) :: eccen  ! orbital eccentricity
-    real(R8)         , intent(inout) :: obliqr ! Earths obliquity in rad
-    real(R8)         , intent(inout) :: lambm0 ! Mean long of perihelion at vernal equinox (radians)
-    real(R8)         , intent(inout) :: mvelpp ! moving vernal equinox longitude of perihelion plus pi (radians)
+    real(CDEPS_REAL_KIND)         , intent(inout) :: eccen  ! orbital eccentricity
+    real(CDEPS_REAL_KIND)         , intent(inout) :: obliqr ! Earths obliquity in rad
+    real(CDEPS_REAL_KIND)         , intent(inout) :: lambm0 ! Mean long of perihelion at vernal equinox (radians)
+    real(CDEPS_REAL_KIND)         , intent(inout) :: mvelpp ! moving vernal equinox longitude of perihelion plus pi (radians)
     integer          , intent(out)   :: rc     ! output error
 
     ! local variables
@@ -1391,7 +1397,7 @@ contains
     character(len=*)    , intent(in)  :: meshfile_mask
     character(len=*)    , intent(in)  :: compname
     integer , pointer   , intent(out) :: mask_dst(:)
-    real(r8), pointer   , intent(out) :: frac_dst(:)
+    real(CDEPS_REAL_KIND), pointer   , intent(out) :: frac_dst(:)
     integer             , intent(out) :: rc
 
     ! local variables:
@@ -1403,15 +1409,15 @@ contains
     integer                :: dstMaskValue = -987987 ! spval for RH mask values
     integer                :: srcTermProcessing_Value = 0
     logical                :: checkflag = .false.
-    real(r8) , pointer     :: mask_src(:) ! on mesh created from meshfile_mask
-    real(r8) , pointer     :: dataptr1d(:)
+    real(CDEPS_REAL_KIND) , pointer     :: mask_src(:) ! on mesh created from meshfile_mask
+    real(CDEPS_REAL_KIND) , pointer     :: dataptr1d(:)
     type(ESMF_DistGrid)    :: distgrid_mask
     type(ESMF_Array)       :: elemMaskArray
     integer                :: lsize_mask, lsize_dst
     integer                :: n, spatialDim
-    real(r8)               :: fminval = 0.001_r8
-    real(r8)               :: fmaxval = 1._r8
-    real(r8)               :: lfrac,ofrac
+    real(CDEPS_REAL_KIND)               :: fminval = 0.001_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND)               :: fmaxval = 1._CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND)               :: lfrac,ofrac
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -1469,20 +1475,20 @@ contains
     if (chkerr(rc,__LINE__,u_FILE_u)) return
 
     do n = 1,lsize_dst
-       lfrac = 1._r8 - dataptr1d(n)
-       if (lfrac > fmaxval) lfrac = 1._r8
-       if (lfrac < fminval) lfrac = 0._r8
-       ofrac = 1._r8 - lfrac
+       lfrac = 1._CDEPS_REAL_KIND - dataptr1d(n)
+       if (lfrac > fmaxval) lfrac = 1._CDEPS_REAL_KIND
+       if (lfrac < fminval) lfrac = 0._CDEPS_REAL_KIND
+       ofrac = 1._CDEPS_REAL_KIND - lfrac
        if (compname == 'LND') then
           frac_dst(n) = lfrac
-          if (lfrac /= 0._r8) then
+          if (lfrac /= 0._CDEPS_REAL_KIND) then
              mask_dst(n) = 1
           else
              mask_dst(n) = 0
           end if
        else if (compname == 'OCN' .or. compname == 'ICE') then
           frac_dst(n) = ofrac
-          if (ofrac == 0._r8) then
+          if (ofrac == 0._CDEPS_REAL_KIND) then
              mask_dst(n) = 0
           else
              mask_dst(n) = 1

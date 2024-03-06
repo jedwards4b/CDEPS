@@ -6,8 +6,7 @@ module dshr_fldlist_mod
   use ESMF             , only : ESMF_LOGERR_PASSTHRU, ESMF_LogFoundError
   use ESMF             , only : ESMF_MESHLOC_ELEMENT, ESMF_TYPEKIND_R8, ESMF_StateRemove
   use ESMF             , only : ESMF_Distgrid, ESMF_DistGridCreate, ESMF_FieldCreate
-  use shr_kind_mod     , only : r8=>shr_kind_r8, cs=>shr_kind_cs, cl=>shr_kind_cl, cxx=>shr_kind_cxx
-  use dshr_methods_mod , only : chkerr
+  use dshr_methods_mod , only : chkerr, CS
 
   implicit none
   private
