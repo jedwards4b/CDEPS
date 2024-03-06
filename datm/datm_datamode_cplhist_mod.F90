@@ -3,9 +3,9 @@ module datm_datamode_cplhist_mod
   use ESMF             , only : ESMF_SUCCESS, ESMF_LOGMSG_INFO, ESMF_LogWrite, ESMF_State
   use ESMF             , only : ESMF_StateItem_Flag
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod      , only : shr_sys_abort
   use dshr_methods_mod , only : dshr_state_getfldptr, chkerr
+  use dshr_methods_mod , only : CDEPS_REAL_KIND, i8, cl, cs
   use dshr_strdata_mod , only : shr_strdata_type, shr_strdata_get_stream_pointer
   use dshr_mod         , only : dshr_restart_read, dshr_restart_write
   use dshr_strdata_mod , only : shr_strdata_type
@@ -21,27 +21,27 @@ module datm_datamode_cplhist_mod
   public  :: datm_datamode_cplhist_restart_read
 
   ! export state data
-  real(r8), pointer :: Sa_z(:)              => null()
-  real(r8), pointer :: Sa_u(:)              => null()
-  real(r8), pointer :: Sa_v(:)              => null()
-  real(r8), pointer :: Sa_tbot(:)           => null()
-  real(r8), pointer :: Sa_ptem(:)           => null()
-  real(r8), pointer :: Sa_shum(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_z(:)              => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_u(:)              => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_v(:)              => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_tbot(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_ptem(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_shum(:)           => null()
 ! TODO: water isotope support
-!  real(r8), pointer :: Sa_shum_wiso(:,:)    => null() ! water isotopes
-  real(r8), pointer :: Sa_dens(:)           => null()
-  real(r8), pointer :: Sa_pbot(:)           => null()
-  real(r8), pointer :: Sa_pslv(:)           => null()
-  real(r8), pointer :: Faxa_lwdn(:)         => null()
-  real(r8), pointer :: Faxa_rainc(:)        => null()
-  real(r8), pointer :: Faxa_rainl(:)        => null()
-  real(r8), pointer :: Faxa_snowc(:)        => null()
-  real(r8), pointer :: Faxa_snowl(:)        => null()
-  real(r8), pointer :: Faxa_swndr(:)        => null()
-  real(r8), pointer :: Faxa_swndf(:)        => null()
-  real(r8), pointer :: Faxa_swvdr(:)        => null()
-  real(r8), pointer :: Faxa_swvdf(:)        => null()
-  real(r8), pointer :: Faxa_swnet(:)        => null()
+!  real(CDEPS_REAL_KIND), pointer :: Sa_shum_wiso(:,:)    => null() ! water isotopes
+  real(CDEPS_REAL_KIND), pointer :: Sa_dens(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_pbot(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_pslv(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_lwdn(:)         => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_rainc(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_rainl(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_snowc(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_snowl(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swndr(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swndf(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swvdr(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swvdf(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swnet(:)        => null()
 
   character(*), parameter :: nullstr = 'null'
   character(*), parameter :: rpfile  = 'rpointer.atm'

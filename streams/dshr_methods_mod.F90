@@ -14,6 +14,7 @@ module dshr_methods_mod
   use ESMF         , only : ESMF_TraceRegionEnter, ESMF_TraceRegionExit
 ! this should be the only place in cdeps using shr_kind_mod, other cdeps modules should use kinds exported from this module.
   use shr_kind_mod , only : CDEPS_REAL_KIND=>shr_kind_r8, cs=>shr_kind_cs, cl=>shr_kind_cl, cx=>shr_kind_cx, cxx=>shr_kind_cxx, i8=>shr_kind_i8
+  use shr_kind_mod , only : I2 => shr_kind_i2, R4=>shr_kind_r4
   implicit none
   public
 

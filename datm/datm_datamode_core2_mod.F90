@@ -16,12 +16,12 @@ module datm_datamode_core2_mod
   use pio              , only : pio_inq_varndims, pio_inq_vardimid, pio_double
   use pio              , only : pio_closefile
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod      , only : shr_sys_abort
   use shr_cal_mod      , only : shr_cal_date2julian
   use shr_const_mod    , only : shr_const_tkfrz, shr_const_pi
   use dshr_strdata_mod , only : shr_strdata_get_stream_pointer, shr_strdata_type
   use dshr_methods_mod , only : dshr_state_getfldptr, dshr_fldbun_getfldptr, dshr_fldbun_regrid, chkerr
+  use dshr_methods_mod , only : CDEPS_REAL_KIND, i8, cl, cs
   use dshr_mod         , only : dshr_restart_read, dshr_restart_write
   use dshr_strdata_mod , only : shr_strdata_type
   use dshr_fldlist_mod , only : fldlist_type, dshr_fldlist_add
@@ -38,50 +38,50 @@ module datm_datamode_core2_mod
   private :: datm_get_adjustment_factors
 
   ! export state pointers
-  real(r8), pointer :: Sa_u(:)       => null()
-  real(r8), pointer :: Sa_v(:)       => null()
-  real(r8), pointer :: Sa_z(:)       => null()
-  real(r8), pointer :: Sa_tbot(:)    => null()
-  real(r8), pointer :: Sa_ptem(:)    => null()
-  real(r8), pointer :: Sa_shum(:)    => null()
-  real(r8), pointer :: Sa_pbot(:)    => null()
-  real(r8), pointer :: Sa_pslv(:)    => null()
-  real(r8), pointer :: Faxa_lwdn(:)  => null()
-  real(r8), pointer :: Faxa_rainc(:) => null()
-  real(r8), pointer :: Faxa_rainl(:) => null()
-  real(r8), pointer :: Faxa_snowc(:) => null()
-  real(r8), pointer :: Faxa_snowl(:) => null()
-  real(r8), pointer :: Faxa_swndr(:) => null()
-  real(r8), pointer :: Faxa_swndf(:) => null()
-  real(r8), pointer :: Faxa_swvdr(:) => null()
-  real(r8), pointer :: Faxa_swvdf(:) => null()
-  real(r8), pointer :: Faxa_swnet(:) => null()
-  real(r8), pointer :: Faxa_ndep(:,:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_u(:)       => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_v(:)       => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_z(:)       => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_tbot(:)    => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_ptem(:)    => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_shum(:)    => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_pbot(:)    => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_pslv(:)    => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_lwdn(:)  => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_rainc(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_rainl(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_snowc(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_snowl(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swndr(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swndf(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swvdr(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swvdf(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swnet(:) => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_ndep(:,:) => null()
 
   ! stream data
-  real(r8), pointer :: strm_prec(:)      => null()
-  real(r8), pointer :: strm_swdn(:)      => null()
-  real(r8), pointer :: strm_tarcf(:)     => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_prec(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_swdn(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_tarcf(:)     => null()
 
   ! othe module arrays
-  real(R8), pointer :: windFactor(:)
-  real(R8), pointer :: winddFactor(:)
-  real(R8), pointer :: qsatFactor(:)
-  real(R8), pointer :: yc(:)                 ! array of model latitudes
+  real(CDEPS_REAL_KIND), pointer :: windFactor(:)
+  real(CDEPS_REAL_KIND), pointer :: winddFactor(:)
+  real(CDEPS_REAL_KIND), pointer :: qsatFactor(:)
+  real(CDEPS_REAL_KIND), pointer :: yc(:)                 ! array of model latitudes
 
   ! constants
-  real(R8) , parameter :: tKFrz    = SHR_CONST_TKFRZ
-  real(R8) , parameter :: degtorad = SHR_CONST_PI/180.0_R8
-  real(R8) , parameter :: avg_c0   =  61.846_R8
-  real(R8) , parameter :: avg_c1   =   1.107_R8
-  real(R8) , parameter :: amp_c0   = -21.841_R8
-  real(R8) , parameter :: amp_c1   =  -0.447_R8
-  real(R8) , parameter :: phs_c0   =   0.298_R8
-  real(R8) , parameter :: dLWarc   =  -5.000_R8
+  real(CDEPS_REAL_KIND) , parameter :: tKFrz    = SHR_CONST_TKFRZ
+  real(CDEPS_REAL_KIND) , parameter :: degtorad = SHR_CONST_PI/180.0_CDEPS_REAL_KIND
+  real(CDEPS_REAL_KIND) , parameter :: avg_c0   =  61.846_CDEPS_REAL_KIND
+  real(CDEPS_REAL_KIND) , parameter :: avg_c1   =   1.107_CDEPS_REAL_KIND
+  real(CDEPS_REAL_KIND) , parameter :: amp_c0   = -21.841_CDEPS_REAL_KIND
+  real(CDEPS_REAL_KIND) , parameter :: amp_c1   =  -0.447_CDEPS_REAL_KIND
+  real(CDEPS_REAL_KIND) , parameter :: phs_c0   =   0.298_CDEPS_REAL_KIND
+  real(CDEPS_REAL_KIND) , parameter :: dLWarc   =  -5.000_CDEPS_REAL_KIND
 
-  real(R8) :: dTarc(12)
-  data   dTarc      / 0.49_R8, 0.06_R8,-0.73_R8,  -0.89_R8,-0.77_R8,-1.02_R8, &
-                     -1.99_R8,-0.91_R8, 1.72_R8,   2.30_R8, 1.81_R8, 1.06_R8/
+  real(CDEPS_REAL_KIND) :: dTarc(12)
+  data   dTarc      / 0.49_CDEPS_REAL_KIND, 0.06_CDEPS_REAL_KIND,-0.73_CDEPS_REAL_KIND,  -0.89_CDEPS_REAL_KIND,-0.77_CDEPS_REAL_KIND,-1.02_CDEPS_REAL_KIND, &
+                     -1.99_CDEPS_REAL_KIND,-0.91_CDEPS_REAL_KIND, 1.72_CDEPS_REAL_KIND,   2.30_CDEPS_REAL_KIND, 1.81_CDEPS_REAL_KIND, 1.06_CDEPS_REAL_KIND/
 
   character(*), parameter :: nullstr = 'null'
   character(*), parameter :: rpfile  = 'rpointer.atm'
@@ -180,7 +180,7 @@ contains
     integer           :: lsize
     integer           :: spatialDim         ! number of dimension in mesh
     integer           :: numOwnedElements   ! size of mesh
-    real(r8), pointer :: ownedElemCoords(:) ! mesh lat and lons
+    real(CDEPS_REAL_KIND), pointer :: ownedElemCoords(:) ! mesh lat and lons
     type(ESMF_StateItem_Flag) :: itemFlag
     character(len=*), parameter :: subname='(datm_init_pointers): '
     !-------------------------------------------------------------------------------
@@ -289,12 +289,12 @@ contains
     ! local variables
     integer  :: n
     integer  :: lsize
-    real(R8) :: avg_alb            ! average albedo
-    real(R8) :: rday               ! elapsed day
-    real(R8) :: cosFactor          ! cosine factor
-    real(R8) :: factor             ! generic/temporary correction factor
-    real(R8) :: tMin               ! minimum temperature
-    real(R8) :: uprime,vprime
+    real(CDEPS_REAL_KIND) :: avg_alb            ! average albedo
+    real(CDEPS_REAL_KIND) :: rday               ! elapsed day
+    real(CDEPS_REAL_KIND) :: cosFactor          ! cosine factor
+    real(CDEPS_REAL_KIND) :: factor             ! generic/temporary correction factor
+    real(CDEPS_REAL_KIND) :: tMin               ! minimum temperature
+    real(CDEPS_REAL_KIND) :: uprime,vprime
     character(len=*), parameter :: subname='(datm_datamode_core2): '
     !-------------------------------------------------------------------------------
 
@@ -303,11 +303,11 @@ contains
     lsize = size(Sa_z)
 
     call shr_cal_date2julian(target_ymd, target_tod, rday, model_calendar)
-    rday = mod((rday - 1.0_R8),365.0_R8)
-    cosfactor = cos((2.0_R8*SHR_CONST_PI*rday)/365 - phs_c0)
+    rday = mod((rday - 1.0_CDEPS_REAL_KIND),365.0_CDEPS_REAL_KIND)
+    cosfactor = cos((2.0_CDEPS_REAL_KIND*SHR_CONST_PI*rday)/365 - phs_c0)
 
     do n = 1,lsize
-       Sa_z(n) = 10.0_R8
+       Sa_z(n) = 10.0_CDEPS_REAL_KIND
 
        !--- correction to NCEP winds based on QSCAT ---
        uprime = Sa_u(n)*windFactor(n)
@@ -319,11 +319,11 @@ contains
        Sa_pbot(n) = Sa_pslv(n)
 
        !--- correction to NCEP Arctic & Antarctic air T & potential T ---
-       if      ( yc(n) < -60.0_R8 ) then
+       if      ( yc(n) < -60.0_CDEPS_REAL_KIND ) then
           tMin = (avg_c0 + avg_c1*yc(n)) + (amp_c0 + amp_c1*yc(n))*cosFactor + tKFrz
           Sa_tbot(n) = max(Sa_tbot(n), tMin)
-       else if ( yc(n) > 60.0_R8 ) then
-          factor = MIN(1.0_R8, 0.1_R8*(yc(n)-60.0_R8) )
+       else if ( yc(n) > 60.0_CDEPS_REAL_KIND ) then
+          factor = MIN(1.0_CDEPS_REAL_KIND, 0.1_CDEPS_REAL_KIND*(yc(n)-60.0_CDEPS_REAL_KIND) )
           Sa_tbot(n) = Sa_tbot(n) + factor * dTarc(target_mon)
        endif
        Sa_ptem(n) = Sa_tbot(n)
@@ -340,42 +340,42 @@ contains
        end if
 
        ! PRECIPITATION DATA
-       strm_prec(n) = strm_prec(n)/86400.0_R8        ! convert mm/day to kg/m^2/s
+       strm_prec(n) = strm_prec(n)/86400.0_CDEPS_REAL_KIND        ! convert mm/day to kg/m^2/s
        !  only correct satellite products, do not correct Serreze Arctic data
        if ( yc(n) < 58. ) then
-          strm_prec(n) = strm_prec(n)*1.14168_R8
+          strm_prec(n) = strm_prec(n)*1.14168_CDEPS_REAL_KIND
        endif
        if ( yc(n) >= 58. .and. yc(n) < 68. ) then
-          factor = MAX(0.0_R8, 1.0_R8 - 0.1_R8*(yc(n)-58.0_R8) )
-          strm_prec(n) = strm_prec(n)*(factor*(1.14168_R8 - 1.0_R8) + 1.0_R8)
+          factor = MAX(0.0_CDEPS_REAL_KIND, 1.0_CDEPS_REAL_KIND - 0.1_CDEPS_REAL_KIND*(yc(n)-58.0_CDEPS_REAL_KIND) )
+          strm_prec(n) = strm_prec(n)*(factor*(1.14168_CDEPS_REAL_KIND - 1.0_CDEPS_REAL_KIND) + 1.0_CDEPS_REAL_KIND)
        endif
-       Faxa_rainc(n) = 0.0_R8               ! default zero
-       Faxa_snowc(n) = 0.0_R8
+       Faxa_rainc(n) = 0.0_CDEPS_REAL_KIND               ! default zero
+       Faxa_snowc(n) = 0.0_CDEPS_REAL_KIND
        if (Sa_tbot(n) < tKFrz ) then        ! assign precip to rain/snow components
-          Faxa_rainl(n) = 0.0_R8
+          Faxa_rainl(n) = 0.0_CDEPS_REAL_KIND
           Faxa_snowl(n) = strm_prec(n)
        else
           Faxa_rainl(n) = strm_prec(n)
-          Faxa_snowl(n) = 0.0_R8
+          Faxa_snowl(n) = 0.0_CDEPS_REAL_KIND
        endif
 
        ! RADIATION DATA
        !--- fabricate required swdn components from net swdn ---
-       Faxa_swvdr(n) = strm_swdn(n)*(0.28_R8)
-       Faxa_swndr(n) = strm_swdn(n)*(0.31_R8)
-       Faxa_swvdf(n) = strm_swdn(n)*(0.24_R8)
-       Faxa_swndf(n) = strm_swdn(n)*(0.17_R8)
+       Faxa_swvdr(n) = strm_swdn(n)*(0.28_CDEPS_REAL_KIND)
+       Faxa_swndr(n) = strm_swdn(n)*(0.31_CDEPS_REAL_KIND)
+       Faxa_swvdf(n) = strm_swdn(n)*(0.24_CDEPS_REAL_KIND)
+       Faxa_swndf(n) = strm_swdn(n)*(0.17_CDEPS_REAL_KIND)
        !--- compute net short-wave based on LY08 latitudinally-varying albedo ---
-       avg_alb = ( 0.069 - 0.011*cos(2.0_R8*yc(n)*degtorad ) )
-       Faxa_swnet(n) = strm_swdn(n)*(1.0_R8 - avg_alb)
+       avg_alb = ( 0.069 - 0.011*cos(2.0_CDEPS_REAL_KIND*yc(n)*degtorad ) )
+       Faxa_swnet(n) = strm_swdn(n)*(1.0_CDEPS_REAL_KIND - avg_alb)
        !--- corrections to GISS sswdn for heat budget balancing ---
-       factor = 1.0_R8
-       if      ( -60.0_R8 < yc(n) .and. yc(n) < -50.0_R8 ) then
-          factor = 1.0_R8 - (yc(n) + 60.0_R8)*(0.05_R8/10.0_R8)
-       else if ( -50.0_R8 < yc(n) .and. yc(n) <  30.0_R8 ) then
-          factor = 0.95_R8
-       else if (  30.0_R8 < yc(n) .and. yc(n) <  40._R8 ) then
-          factor = 1.0_R8 - (40.0_R8 - yc(n))*(0.05_R8/10.0_R8)
+       factor = 1.0_CDEPS_REAL_KIND
+       if      ( -60.0_CDEPS_REAL_KIND < yc(n) .and. yc(n) < -50.0_CDEPS_REAL_KIND ) then
+          factor = 1.0_CDEPS_REAL_KIND - (yc(n) + 60.0_CDEPS_REAL_KIND)*(0.05_CDEPS_REAL_KIND/10.0_CDEPS_REAL_KIND)
+       else if ( -50.0_CDEPS_REAL_KIND < yc(n) .and. yc(n) <  30.0_CDEPS_REAL_KIND ) then
+          factor = 0.95_CDEPS_REAL_KIND
+       else if (  30.0_CDEPS_REAL_KIND < yc(n) .and. yc(n) <  40._CDEPS_REAL_KIND ) then
+          factor = 1.0_CDEPS_REAL_KIND - (40.0_CDEPS_REAL_KIND - yc(n))*(0.05_CDEPS_REAL_KIND/10.0_CDEPS_REAL_KIND)
        endif
        Faxa_swnet(n) = Faxa_swnet(n)*factor
        Faxa_swvdr(n) = Faxa_swvdr(n)*factor
@@ -383,8 +383,8 @@ contains
        Faxa_swvdf(n) = Faxa_swvdf(n)*factor
        Faxa_swndf(n) = Faxa_swndf(n)*factor
        !--- correction to GISS lwdn in Arctic ---
-       if ( yc(n) > 60._R8 ) then
-          factor = MIN(1.0_R8, 0.1_R8*(yc(n)-60.0_R8) )
+       if ( yc(n) > 60._CDEPS_REAL_KIND ) then
+          factor = MIN(1.0_CDEPS_REAL_KIND, 0.1_CDEPS_REAL_KIND*(yc(n)-60.0_CDEPS_REAL_KIND) )
           Faxa_lwdn(n) = Faxa_lwdn(n) + factor * dLWarc
        endif
 
@@ -392,7 +392,7 @@ contains
 
     if (associated(Faxa_ndep)) then
        ! convert ndep flux to units of kgN/m2/s (input is in gN/m2/s)
-       Faxa_ndep(:,:) = Faxa_ndep(:,:) / 1000._r8
+       Faxa_ndep(:,:) = Faxa_ndep(:,:) / 1000._CDEPS_REAL_KIND
     end if
 
   end subroutine datm_datamode_core2_advance
@@ -439,9 +439,9 @@ contains
     type(shr_strdata_type) , intent(in)  :: sdat
     character(*)           , intent(in)  :: fileName_mesh ! file name string
     character(*)           , intent(in)  :: fileName_data ! file name string
-    real(R8)               , pointer     :: windF(:)      ! wind adjustment factor
-    real(R8)               , pointer     :: winddF(:)     ! wind adjustment factor
-    real(r8)               , pointer     :: qsatF(:)      ! rel humidty adjustment factor
+    real(CDEPS_REAL_KIND)               , pointer     :: windF(:)      ! wind adjustment factor
+    real(CDEPS_REAL_KIND)               , pointer     :: winddF(:)     ! wind adjustment factor
+    real(CDEPS_REAL_KIND)               , pointer     :: qsatF(:)      ! rel humidty adjustment factor
     integer                , intent(out) :: rc
 
     ! local variables
@@ -461,7 +461,7 @@ contains
     type(io_desc_t)        :: pio_iodesc
     integer                :: rcode
     integer                :: nxg, nyg
-    real(r8), pointer      :: data(:)
+    real(CDEPS_REAL_KIND), pointer      :: data(:)
     integer                :: srcTermProcessing_Value = 0
     character(*) ,parameter :: subName =  '(datm_get_adjustment_factors) '
     !-------------------------------------------------------------------------------

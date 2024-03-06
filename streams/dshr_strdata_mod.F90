@@ -103,8 +103,8 @@ module dshr_strdata_mod
      integer                             :: todLB = -1                      ! stream tod lower bound
      integer                             :: ymdUB = -1                      ! stream ymd upper bound
      integer                             :: todUB = -1                      ! stream tod upper bound
-     real(r8)                            :: dtmin = 1.0e30_r8
-     real(r8)                            :: dtmax = 0.0_r8
+     real(CDEPS_REAL_KIND)                            :: dtmin = 1.0e30_CDEPS_REAL_KIND
+     real(CDEPS_REAL_KIND)                            :: dtmax = 0.0_CDEPS_REAL_KIND
      logical                             :: override_annual_cycle = .false.
      type(ESMF_Field)                    :: field_coszen                    ! needed for coszen time interp
   end type shr_strdata_perstream
@@ -117,8 +117,8 @@ module dshr_strdata_mod
      integer                        :: io_format                       ! pio info
      integer                        :: modeldt = 0                     ! model dt in seconds
      type(ESMF_Mesh)                :: model_mesh                      ! model mesh
-     real(r8), pointer              :: model_lon(:) => null()          ! model longitudes
-     real(r8), pointer              :: model_lat(:) => null()          ! model latitudes
+     real(CDEPS_REAL_KIND), pointer              :: model_lon(:) => null()          ! model longitudes
+     real(CDEPS_REAL_KIND), pointer              :: model_lat(:) => null()          ! model latitudes
      integer                        :: model_nxg                       ! model global domain lon size
      integer                        :: model_nyg                       ! model global domain lat size
      integer                        :: model_nzg                       ! model global domain vertical size
@@ -129,14 +129,14 @@ module dshr_strdata_mod
      character(CL)                  :: model_calendar = shr_cal_noleap ! model calendar for ymd,tod
      integer                        :: ymd, tod                        ! model time
      type(iosystem_desc_t), pointer :: pio_subsystem => null()         ! pio info
-     real(r8)                       :: eccen  = SHR_ORB_UNDEF_REAL     ! cosz t-interp info
-     real(r8)                       :: mvelpp = SHR_ORB_UNDEF_REAL     ! cosz t-interp info
-     real(r8)                       :: lambm0 = SHR_ORB_UNDEF_REAL     ! cosz t-interp info
-     real(r8)                       :: obliqr = SHR_ORB_UNDEF_REAL     ! cosz t-interp info
-     real(r8), allocatable          :: tavCoszen(:)                    ! cosz t-interp data
+     real(CDEPS_REAL_KIND)                       :: eccen  = SHR_ORB_UNDEF_REAL     ! cosz t-interp info
+     real(CDEPS_REAL_KIND)                       :: mvelpp = SHR_ORB_UNDEF_REAL     ! cosz t-interp info
+     real(CDEPS_REAL_KIND)                       :: lambm0 = SHR_ORB_UNDEF_REAL     ! cosz t-interp info
+     real(CDEPS_REAL_KIND)                       :: obliqr = SHR_ORB_UNDEF_REAL     ! cosz t-interp info
+     real(CDEPS_REAL_KIND), allocatable          :: tavCoszen(:)                    ! cosz t-interp data
   end type shr_strdata_type
 
-  real(r8)         ,parameter :: deg2rad = SHR_CONST_PI/180.0_r8
+  real(CDEPS_REAL_KIND)         ,parameter :: deg2rad = SHR_CONST_PI/180.0_CDEPS_REAL_KIND
   character(*)     ,parameter :: u_FILE_u = &
        __FILE__
 
@@ -260,7 +260,7 @@ contains
     integer                , intent(in)    :: stream_yearAlign       ! align yearFirst with this model year
     integer                , intent(in)    :: stream_offset          ! offset in seconds of stream data
     character(*)           , intent(in)    :: stream_taxMode         ! time axis mode
-    real(r8)               , intent(in)    :: stream_dtlimit         ! ratio of max/min stream delta times
+    real(CDEPS_REAL_KIND)               , intent(in)    :: stream_dtlimit         ! ratio of max/min stream delta times
     character(*)           , intent(in)    :: stream_tintalgo        ! time interpolation algorithm
     integer, optional      , intent(in)    :: stream_src_mask        ! source mask value
     integer, optional      , intent(in)    :: stream_dst_mask        ! destination mask value
@@ -328,7 +328,7 @@ contains
     integer, allocatable  :: elementCountPTile(:)
     integer               :: spatialDim         ! number of dimension in mesh
     integer               :: numOwnedElements   ! local size of mesh
-    real(r8), allocatable :: ownedElemCoords(:) ! mesh lat and lons
+    real(CDEPS_REAL_KIND), allocatable :: ownedElemCoords(:) ! mesh lat and lons
     character(len=*), parameter  :: subname='(shr_strdata_init_model_domain)'
     ! ----------------------------------------------
 
@@ -470,12 +470,12 @@ contains
        do nfld = 1, nvars
           do i=1,size(sdat%pstrm(ns)%fldbun_data)
              if (sdat%pstrm(ns)%stream_nlev > 1) then
-                lfield = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_r8, &
+                lfield = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_R8, &
                      name=trim(sdat%pstrm(ns)%fldlist_model(nfld)), &
                      ungriddedLbound=(/1/), ungriddedUbound=(/stream_nlev/), gridToFieldMap=(/2/), &
                      meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
              else
-                lfield = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_r8, &
+                lfield = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_R8, &
                      name=trim(sdat%pstrm(ns)%fldlist_model(nfld)), &
                      meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
              end if
@@ -495,12 +495,12 @@ contains
        do nfld = 1, nvars
           ! create temporary fields on model mesh and add the fields to the field bundle
           if (stream_nlev > 1) then
-             lfield = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_r8, &
+             lfield = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_R8, &
                   ungriddedLbound=(/1/), ungriddedUbound=(/stream_nlev/), gridToFieldMap=(/2/), &
                   name=trim(sdat%pstrm(ns)%fldlist_model(nfld)), &
                   meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
           else
-             lfield = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_r8, &
+             lfield = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_R8, &
                   name=trim(sdat%pstrm(ns)%fldlist_model(nfld)), &
                   meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
           end if
@@ -511,12 +511,12 @@ contains
        ! Create a field on the model mesh for coszen time interpolation for this stream if needed
        if (trim(sdat%stream(ns)%tinterpalgo) == 'coszen') then
           if (stream_nlev > 1) then
-             sdat%pstrm(ns)%field_coszen = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_r8, &
+             sdat%pstrm(ns)%field_coszen = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_R8, &
                   name='tavCosz', &
                   ungriddedLbound=(/1/), ungriddedUbound=(/stream_nlev/), gridToFieldMap=(/2/), &
                   meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
           else
-             sdat%pstrm(ns)%field_coszen = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_r8, &
+             sdat%pstrm(ns)%field_coszen = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_R8, &
                   name='tavCosz', &
                   meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
           end if
@@ -532,15 +532,15 @@ contains
        if(ESMF_MeshIsCreated(stream_mesh)) then
           if (stream_nlev > 1) then
              sdat%pstrm(ns)%field_stream = ESMF_FieldCreate(stream_mesh, &
-                  ESMF_TYPEKIND_r8, meshloc=ESMF_MESHLOC_ELEMENT, &
+                  ESMF_TYPEKIND_R8, meshloc=ESMF_MESHLOC_ELEMENT, &
                   ungriddedLbound=(/1/), ungriddedUbound=(/stream_nlev/), gridToFieldMap=(/2/), &
                   rc=rc)
              if (chkerr(rc,__LINE__,u_FILE_u)) return
           else
              sdat%pstrm(ns)%field_stream = ESMF_FieldCreate(stream_mesh, &
-                  ESMF_TYPEKIND_r8, meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
+                  ESMF_TYPEKIND_R8, meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
              if (chkerr(rc,__LINE__,u_FILE_u)) return
-             call ESMF_FieldFill(sdat%pstrm(ns)%field_stream, dataFillScheme="const", const1=1.0_r8, rc=rc)
+             call ESMF_FieldFill(sdat%pstrm(ns)%field_stream, dataFillScheme="const", const1=1.0_CDEPS_REAL_KIND, rc=rc)
              if (chkerr(rc,__LINE__,u_FILE_u)) return
           end if
        endif
@@ -628,7 +628,7 @@ contains
           endif
           ! create stream vector field
           sdat%pstrm(ns)%field_stream_vector = ESMF_FieldCreate(stream_mesh, &
-               ESMF_TYPEKIND_r8, name='stream_vector', meshloc=ESMF_MESHLOC_ELEMENT, &
+               ESMF_TYPEKIND_R8, name='stream_vector', meshloc=ESMF_MESHLOC_ELEMENT, &
                ungriddedLbound=(/1/), ungriddedUbound=(/2/), gridToFieldMap=(/2/), rc=rc)
           if (chkerr(rc,__LINE__,u_FILE_u)) return
           if (mainproc) then
@@ -717,7 +717,7 @@ contains
     type(shr_strdata_type) , intent(inout) :: sdat
     integer                , intent(in)    :: stream_index
     character(len=*)       , intent(in)    :: fldname
-    real(r8)               , pointer       :: flddata(:)
+    real(CDEPS_REAL_KIND)               , pointer       :: flddata(:)
     integer                , intent(out)   :: rc
 
     ! local variables
@@ -728,7 +728,7 @@ contains
     character(CL)           :: filename
     type(io_desc_t)         :: pio_iodesc
     real(r4), allocatable   :: data_real(:)
-    real(r8), allocatable   :: data_double(:)
+    real(CDEPS_REAL_KIND), allocatable   :: data_double(:)
     integer                 :: pio_iovartype
     integer                 :: lsize
     character(*), parameter :: subname = '(shr_strdata_set_stream_domain) '
@@ -758,7 +758,7 @@ contains
     if (pio_iovartype == PIO_REAL) then
        allocate(data_real(lsize))
        call pio_read_darray(pioid, varid, pio_iodesc, data_real, rcode)
-       flddata(:) = real(data_real(:), kind=r8)
+       flddata(:) = real(data_real(:), kind=CDEPS_REAL_KIND)
        deallocate(data_real)
     else if (pio_iovartype == PIO_DOUBLE) then
        allocate(data_double(lsize))
@@ -843,34 +843,34 @@ contains
     integer                             :: i,lev,n          ! generic indices
     logical , allocatable               :: newData(:)
     integer , allocatable               :: ymdmod(:)        ! modified model dates to handle Feb 29
-    real(r8), allocatable               :: coszen(:)        ! cosine of zenith angle
+    real(CDEPS_REAL_KIND), allocatable               :: coszen(:)        ! cosine of zenith angle
     integer                             :: todmod           ! modified model dates to handle Feb 29
     character(len=32)                   :: lstr             ! local string
-    real(r8)                            :: flb,fub          ! factor for lb and ub
-    real(r8) ,pointer                   :: dataptr1d(:)     ! pointer into field bundle
-    real(r8) ,pointer                   :: dataptr1d_lb(:)  ! pointer into field bundle
-    real(r8) ,pointer                   :: dataptr1d_ub(:)  ! pointer into field bundle
-    real(r8) ,pointer                   :: dataptr2d(:,:)   ! pointer into field bundle
-    real(r8) ,pointer                   :: dataptr2d_lb(:,:)! pointer into field bundle
-    real(r8) ,pointer                   :: dataptr2d_ub(:,:)! pointer into field bundle
-    real(r8), pointer                   :: nu_coords(:)     ! allocatable local element mesh lat and lons
-    real(r8), pointer                   :: nv_coords(:)     ! allocatable local element mesh lat and lons
-    real(r8), pointer                   :: data2d_src(:,:)  ! pointer into field bundle
-    real(r8), pointer                   :: data2d_dst(:,:)  ! pointer into field bundle
-    real(r8), pointer                   :: data_u_src(:)    ! pointer into field bundle
-    real(r8), pointer                   :: data_v_src(:)    ! pointer into field bundle
-    real(r8), pointer                   :: data_u_dst(:)    ! pointer into field bundle
-    real(r8), pointer                   :: data_v_dst(:)    ! pointer into field bundle
+    real(CDEPS_REAL_KIND)                            :: flb,fub          ! factor for lb and ub
+    real(CDEPS_REAL_KIND) ,pointer                   :: dataptr1d(:)     ! pointer into field bundle
+    real(CDEPS_REAL_KIND) ,pointer                   :: dataptr1d_lb(:)  ! pointer into field bundle
+    real(CDEPS_REAL_KIND) ,pointer                   :: dataptr1d_ub(:)  ! pointer into field bundle
+    real(CDEPS_REAL_KIND) ,pointer                   :: dataptr2d(:,:)   ! pointer into field bundle
+    real(CDEPS_REAL_KIND) ,pointer                   :: dataptr2d_lb(:,:)! pointer into field bundle
+    real(CDEPS_REAL_KIND) ,pointer                   :: dataptr2d_ub(:,:)! pointer into field bundle
+    real(CDEPS_REAL_KIND), pointer                   :: nu_coords(:)     ! allocatable local element mesh lat and lons
+    real(CDEPS_REAL_KIND), pointer                   :: nv_coords(:)     ! allocatable local element mesh lat and lons
+    real(CDEPS_REAL_KIND), pointer                   :: data2d_src(:,:)  ! pointer into field bundle
+    real(CDEPS_REAL_KIND), pointer                   :: data2d_dst(:,:)  ! pointer into field bundle
+    real(CDEPS_REAL_KIND), pointer                   :: data_u_src(:)    ! pointer into field bundle
+    real(CDEPS_REAL_KIND), pointer                   :: data_v_src(:)    ! pointer into field bundle
+    real(CDEPS_REAL_KIND), pointer                   :: data_u_dst(:)    ! pointer into field bundle
+    real(CDEPS_REAL_KIND), pointer                   :: data_v_dst(:)    ! pointer into field bundle
     type(ESMF_Time)                     :: timeLB, timeUB   ! lb and ub times
     type(ESMF_TimeInterval)             :: timeint          ! delta time
     character(CL)                       :: calendar
     integer                             :: dday             ! delta days
-    real(r8)                            :: dtime            ! delta time
+    real(CDEPS_REAL_KIND)                            :: dtime            ! delta time
     integer                             :: year,month,day   ! date year month day
     integer                             :: datayear,datamonth,dataday   ! data date year month day
     integer                             :: nstreams
     integer                             :: stream_index
-    real(r8)         ,parameter         :: solZenMin = 0.001_r8 ! minimum solar zenith angle
+    real(CDEPS_REAL_KIND)         ,parameter         :: solZenMin = 0.001_CDEPS_REAL_KIND ! minimum solar zenith angle
     integer          ,parameter         :: tadj = 2
     character(len=*) ,parameter         :: timname = "_strd_adv"
     character(*)     ,parameter         :: subname = "(shr_strdata_advance) "
@@ -1012,7 +1012,7 @@ contains
                       write(logunit,*) trim(subname),' WARNING: Stream ',ns,' is not cycling on annual boundaries, and dtlimit check has been overridden'
                    endif
                 else
-                   dtime = abs(real(dday,r8) + real(sdat%pstrm(ns)%todUB-sdat%pstrm(ns)%todLB,r8)/shr_const_cDay)
+                   dtime = abs(real(dday,CDEPS_REAL_KIND) + real(sdat%pstrm(ns)%todUB-sdat%pstrm(ns)%todLB,CDEPS_REAL_KIND)/shr_const_cDay)
 
                    sdat%pstrm(ns)%dtmin = min(sdat%pstrm(ns)%dtmin,dtime)
                    sdat%pstrm(ns)%dtmax = max(sdat%pstrm(ns)%dtmax,dtime)
@@ -1105,7 +1105,7 @@ contains
                       if (coszen(i) > solZenMin) then
                          dataptr2d(:,i) = dataptr2d_lb(:,i)*coszen(i)/sdat%tavCoszen(i)
                       else
-                         dataptr2d(:,i) = 0._r8
+                         dataptr2d(:,i) = 0._CDEPS_REAL_KIND
                       endif
                    end do
                 else
@@ -1119,7 +1119,7 @@ contains
                       if (coszen(i) > solZenMin) then
                          dataptr1d(i) = dataptr1d_lb(i)*coszen(i)/sdat%tavCoszen(i)
                       else
-                         dataptr1d(i) = 0._r8
+                         dataptr1d(i) = 0._CDEPS_REAL_KIND
                       endif
                    end do
                 end if
@@ -1185,12 +1185,12 @@ contains
                    call dshr_fldbun_getfldptr(sdat%pstrm(ns)%fldbun_model, &
                         sdat%pstrm(ns)%fldlist_model(nf), fldptr2=dataptr2d, rc=rc)
                    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-                   dataptr2d(:,:) = 0._r8
+                   dataptr2d(:,:) = 0._CDEPS_REAL_KIND
                 else
                    call dshr_fldbun_getfldptr(sdat%pstrm(ns)%fldbun_model, &
                         sdat%pstrm(ns)%fldlist_model(nf), fldptr1=dataptr1d, rc=rc)
                    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-                   dataptr1d(:) = 0._r8
+                   dataptr1d(:) = 0._CDEPS_REAL_KIND
                 end if
              end do
              call ESMF_TraceRegionExit(trim(lstr)//trim(timname)//'_zero')
@@ -1212,10 +1212,10 @@ contains
   subroutine shr_strdata_setOrbs(sdat,eccen,mvelpp,lambm0,obliqr,modeldt)
 
     type(shr_strdata_type),intent(inout) :: sdat
-    real(r8),intent(in) :: eccen
-    real(r8),intent(in) :: mvelpp
-    real(r8),intent(in) :: lambm0
-    real(r8),intent(in) :: obliqr
+    real(CDEPS_REAL_KIND),intent(in) :: eccen
+    real(CDEPS_REAL_KIND),intent(in) :: mvelpp
+    real(CDEPS_REAL_KIND),intent(in) :: lambm0
+    real(CDEPS_REAL_KIND),intent(in) :: obliqr
     integer,intent(in) :: modeldt
 
     ! local variables
@@ -1301,7 +1301,7 @@ contains
     logical                              :: fileexists
     integer                              :: oDateLB,oSecLB,dDateLB
     integer                              :: oDateUB,oSecUB,dDateUB
-    real(r8)                             :: rDateM,rDateLB,rDateUB  ! model,LB,UB dates with fractional days
+    real(CDEPS_REAL_KIND)                             :: rDateM,rDateLB,rDateUB  ! model,LB,UB dates with fractional days
     integer                              :: n_lb, n_ub
     integer                              :: i
     character(CL)                        :: filename_lb
@@ -1336,9 +1336,9 @@ contains
     oSecUB  = sdat%pstrm(ns)%todUB
 
     ! module current, lowerbound and upperbound date
-    rDateM  = real(mDate  ,r8) + real(mSec  ,r8)/shr_const_cday
-    rDateLB = real(sdat%pstrm(ns)%ymdLB,r8) + real(sdat%pstrm(ns)%todLB,r8)/shr_const_cday
-    rDateUB = real(sdat%pstrm(ns)%ymdUB,r8) + real(sdat%pstrm(ns)%todUB,r8)/shr_const_cday
+    rDateM  = real(mDate  ,CDEPS_REAL_KIND) + real(mSec  ,CDEPS_REAL_KIND)/shr_const_cday
+    rDateLB = real(sdat%pstrm(ns)%ymdLB,CDEPS_REAL_KIND) + real(sdat%pstrm(ns)%todLB,CDEPS_REAL_KIND)/shr_const_cday
+    rDateUB = real(sdat%pstrm(ns)%ymdUB,CDEPS_REAL_KIND) + real(sdat%pstrm(ns)%todUB,CDEPS_REAL_KIND)/shr_const_cday
 
     call ESMF_TraceRegionExit(trim(istr)//'_setup')
 
@@ -1414,7 +1414,7 @@ contains
     ! Read the stream data and initialize the strea pio_iodesc the first time
     ! the stream is read
 
-    use shr_const_mod         , only : r8fill => SHR_CONST_SPVAL
+    use shr_const_mod         , only : CDEPS_REAL_KINDfill => SHR_CONST_SPVAL
     use shr_infnan_mod        , only : shr_infnan_isnan
 
     ! input/output variables
@@ -1439,29 +1439,29 @@ contains
     integer                  :: nf
     integer                  :: rCode
     real(r4)                 :: fillvalue_r4
-    real(r8)                 :: fillvalue_r8
+    real(CDEPS_REAL_KIND)                 :: fillvalue_CDEPS_REAL_KIND
     logical                  :: handlefill = .false.
     integer                  :: old_error_handle
-    real(r8), pointer        :: dataptr(:)
-    real(r8), pointer        :: dataptr1d(:)        ! field bundle data
-    real(r8), pointer        :: dataptr2d(:,:)      ! field bundle data
-    real(r8), pointer        :: dataptr2d_src(:,:)  ! field bundle data
-    real(r8), pointer        :: dataptr2d_dst(:,:)  ! field bundle data
+    real(CDEPS_REAL_KIND), pointer        :: dataptr(:)
+    real(CDEPS_REAL_KIND), pointer        :: dataptr1d(:)        ! field bundle data
+    real(CDEPS_REAL_KIND), pointer        :: dataptr2d(:,:)      ! field bundle data
+    real(CDEPS_REAL_KIND), pointer        :: dataptr2d_src(:,:)  ! field bundle data
+    real(CDEPS_REAL_KIND), pointer        :: dataptr2d_dst(:,:)  ! field bundle data
     real(r4), allocatable    :: data_real1d(:)      ! stream input data
     real(r4), allocatable    :: data_real2d(:,:)    ! stream input data
-    real(r8), allocatable    :: data_dbl1d(:)       ! stream input data
-    real(r8), allocatable    :: data_dbl2d(:,:)     ! stream input data
+    real(CDEPS_REAL_KIND), allocatable    :: data_dbl1d(:)       ! stream input data
+    real(CDEPS_REAL_KIND), allocatable    :: data_dbl2d(:,:)     ! stream input data
     integer(i2), allocatable :: data_short1d(:)     ! stream input data
     integer(i2), allocatable :: data_short2d(:,:)   ! stream input data
     integer                  :: lsize, n
     integer                  :: spatialDim, numOwnedElements
     integer                  :: pio_iovartype
-    real(r8), pointer        :: nv_coords(:), nu_coords(:)
-    real(r8), pointer        :: data_u_dst(:), data_v_dst(:)
-    real(r8)                 :: lat, lon
-    real(r8)                 :: sinlat, sinlon
-    real(r8)                 :: coslat, coslon
-    real(r8)                 :: scale_factor, add_offset
+    real(CDEPS_REAL_KIND), pointer        :: nv_coords(:), nu_coords(:)
+    real(CDEPS_REAL_KIND), pointer        :: data_u_dst(:), data_v_dst(:)
+    real(CDEPS_REAL_KIND)                 :: lat, lon
+    real(CDEPS_REAL_KIND)                 :: sinlat, sinlon
+    real(CDEPS_REAL_KIND)                 :: coslat, coslon
+    real(CDEPS_REAL_KIND)                 :: scale_factor, add_offset
     integer(i2)              :: fillvalue_i2
     character(CS)            :: uname, vname
     integer                  :: i, lev
@@ -1591,7 +1591,7 @@ contains
        if (pio_iovartype == PIO_REAL) then
           rcode = pio_get_att(pioid, varid, "_FillValue", fillvalue_r4)
        else if (pio_iovartype == PIO_DOUBLE) then
-          rcode = pio_get_att(pioid, varid, "_FillValue", fillvalue_r8)
+          rcode = pio_get_att(pioid, varid, "_FillValue", fillvalue_CDEPS_REAL_KIND)
        else if (pio_iovartype == PIO_SHORT) then
           rcode = pio_get_att(pioid, varid, "scale_factor", scale_factor)
           if(rcode /= PIO_NOERR) then
@@ -1637,16 +1637,16 @@ contains
                 do lev = 1,stream_nlev
                    do n = 1,size(dataptr2d, dim=2)
                       if (.not. shr_infnan_isnan(data_real2d(n,lev)) .and. data_real2d(n,lev) .ne. fillvalue_r4) then
-                         dataptr2d(lev,n) = real(data_real2d(n,lev), kind=r8) ! Note the order of indices
+                         dataptr2d(lev,n) = real(data_real2d(n,lev), kind=CDEPS_REAL_KIND) ! Note the order of indices
                       else
-                         dataptr2d(lev,n) = r8fill
+                         dataptr2d(lev,n) = CDEPS_REAL_KINDfill
                       endif
                    enddo
                 end do
              else
                 do lev = 1,stream_nlev
                    do n = 1,size(dataptr2d, dim=2)
-                      dataptr2d(lev,n) = real(data_real2d(n,lev), kind=r8)
+                      dataptr2d(lev,n) = real(data_real2d(n,lev), kind=CDEPS_REAL_KIND)
                    end do
                 end do
              end if
@@ -1669,13 +1669,13 @@ contains
 
                 do n=1,size(dataptr1d)
                    if(.not. shr_infnan_isnan(data_real1d(n)) .and. data_real1d(n) .ne. fillvalue_r4) then
-                      dataptr1d(n) = real(data_real1d(n), kind=r8)
+                      dataptr1d(n) = real(data_real1d(n), kind=CDEPS_REAL_KIND)
                    else
-                      dataptr1d(n) = r8fill
+                      dataptr1d(n) = CDEPS_REAL_KINDfill
                    endif
                 enddo
              else
-                dataptr1d(:) = real(data_real1d(:),kind=r8)
+                dataptr1d(:) = real(data_real1d(:),kind=CDEPS_REAL_KIND)
              endif
           end if
 
@@ -1694,17 +1694,17 @@ contains
              end if
              if (handlefill) then
                 ! Single point streams are not allowed to have missing values
-                if (stream%mapalgo == 'none' .and. any(data_dbl2d == fillvalue_r8)) then
+                if (stream%mapalgo == 'none' .and. any(data_dbl2d == fillvalue_CDEPS_REAL_KIND)) then
                    write(errmsg,*) ' ERROR: _Fillvalue found in stream input variable: '// trim(per_stream%fldlist_stream(nf))
                    if(sdat%mainproc) write(sdat%stream(1)%logunit,*) trim(errmsg)
                    call shr_sys_abort(errmsg)
                 endif
                 do lev = 1,stream_nlev
                    do n = 1,size(dataptr2d, dim=2)
-                      if (.not. shr_infnan_isnan(data_dbl2d(n,lev)) .and. data_dbl2d(n,lev) .ne. fillvalue_r8) then
+                      if (.not. shr_infnan_isnan(data_dbl2d(n,lev)) .and. data_dbl2d(n,lev) .ne. fillvalue_CDEPS_REAL_KIND) then
                          dataptr2d(lev,n) = data_dbl2d(n,lev)
                       else
-                         dataptr2d(lev,n) = r8fill
+                         dataptr2d(lev,n) = CDEPS_REAL_KINDfill
                       endif
                    enddo
                 end do
@@ -1726,16 +1726,16 @@ contains
              end if
              if (handlefill) then
                 ! Single point streams are not allowed to have missing values
-                if (stream%mapalgo == 'none' .and. any(data_dbl1d == fillvalue_r8)) then
+                if (stream%mapalgo == 'none' .and. any(data_dbl1d == fillvalue_CDEPS_REAL_KIND)) then
                    write(errmsg,*) ' ERROR: _Fillvalue found in stream input variable: '// trim(per_stream%fldlist_stream(nf))
                    if(sdat%mainproc) write(sdat%stream(1)%logunit,*) trim(errmsg)
                    call shr_sys_abort(errmsg)
                 endif
                 do n = 1,size(dataptr1d)
-                   if (.not. shr_infnan_isnan(data_dbl1d(n)) .and. data_dbl1d(n) .ne. fillvalue_r8) then
+                   if (.not. shr_infnan_isnan(data_dbl1d(n)) .and. data_dbl1d(n) .ne. fillvalue_CDEPS_REAL_KIND) then
                       dataptr1d(n) = data_dbl1d(n)
                    else
-                      dataptr1d(n) = r8fill
+                      dataptr1d(n) = CDEPS_REAL_KINDfill
                    end if
                 enddo
              else
@@ -1762,16 +1762,16 @@ contains
                 do lev = 1,stream_nlev
                    do n = 1,lsize
                       if(data_short2d(n,lev) .eq. fillvalue_i2) then
-                         dataptr2d(lev,n) = r8fill
+                         dataptr2d(lev,n) = CDEPS_REAL_KINDfill
                       else
-                         dataptr2d(lev,n) = real(data_short2d(lev,n),r8) * scale_factor + add_offset
+                         dataptr2d(lev,n) = real(data_short2d(lev,n),CDEPS_REAL_KIND) * scale_factor + add_offset
                       endif
                    enddo
                 end do
              else
                 do lev = 1,stream_nlev
                    do n = 1,lsize
-                      dataptr2d(lev,n) = real(data_short2d(n,lev),r8) * scale_factor + add_offset
+                      dataptr2d(lev,n) = real(data_short2d(n,lev),CDEPS_REAL_KIND) * scale_factor + add_offset
                    enddo
                 end do
              end if
@@ -1787,14 +1787,14 @@ contains
              if (handlefill) then
                 do n=1,lsize
                    if(data_short1d(n).eq.fillvalue_i2) then
-                      dataptr1d(n) = r8fill
+                      dataptr1d(n) = CDEPS_REAL_KINDfill
                    else
-                      dataptr1d(n) = real(data_short1d(n),r8) * scale_factor + add_offset
+                      dataptr1d(n) = real(data_short1d(n),CDEPS_REAL_KIND) * scale_factor + add_offset
                    endif
                 enddo
              else
                 do n=1,lsize
-                   dataptr1d(n) = real(data_short1d(n),r8) * scale_factor + add_offset
+                   dataptr1d(n) = real(data_short1d(n),CDEPS_REAL_KIND) * scale_factor + add_offset
                 enddo
              endif
           end if
@@ -1854,7 +1854,7 @@ contains
           dataptr2d_src(1,i) = (coslon * dataptr(i) - sinlon * dataptr2d_src(2,i))
           dataptr2d_src(2,i) = (sinlon * dataptr(i) + coslon * dataptr2d_src(2,i))
        enddo
-       field_vector_dst = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_r8, name='field_vector_dst', &
+       field_vector_dst = ESMF_FieldCreate(sdat%model_mesh, ESMF_TYPEKIND_R8, name='field_vector_dst', &
             ungriddedLbound=(/1/), ungriddedUbound=(/2/), gridToFieldMap=(/2/), meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
        if (chkerr(rc,__LINE__,u_FILE_u)) return
 
@@ -2043,7 +2043,7 @@ contains
     ! input/output variables
     type(shr_strdata_type) , intent(in)    :: sdat
     character(len=*)       , intent(in)    :: strm_fld
-    real(r8)               , pointer       :: strm_ptr(:)
+    real(CDEPS_REAL_KIND)               , pointer       :: strm_ptr(:)
     integer                , intent(out)   :: rc
 
     ! local variables
@@ -2083,7 +2083,7 @@ contains
     ! input/output variables
     type(shr_strdata_type) , intent(in)    :: sdat
     character(len=*)       , intent(in)    :: strm_fld
-    real(r8)               , pointer       :: strm_ptr(:,:)
+    real(CDEPS_REAL_KIND)               , pointer       :: strm_ptr(:,:)
     integer                , intent(out)   :: rc
 
     ! local variables

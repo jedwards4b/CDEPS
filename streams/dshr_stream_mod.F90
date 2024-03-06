@@ -15,8 +15,6 @@ module dshr_stream_mod
   ! containing those dates.
   ! -------------------------------------------------------------------------------
 
-  use shr_kind_mod     , only : r8=>shr_kind_r8, cs=>shr_kind_cs, cl=>shr_kind_cl, cxx=>shr_kind_cxx
-  use shr_sys_mod      , only : shr_sys_abort
   use shr_const_mod    , only : shr_const_cday
   use shr_string_mod   , only : shr_string_leftalign_and_convert_tabs, shr_string_parseCFtunit
   use shr_cal_mod      , only : shr_cal_noleap
@@ -26,7 +24,8 @@ module dshr_stream_mod
   use shr_cal_mod      , only : shr_cal_advDate
   use shr_cal_mod      , only : shr_cal_advdateint
   use shr_cal_mod      , only : shr_cal_leapyear
-  use dshr_methods_mod , only : chkerr
+  use shr_sys_mod      , only : shr_sys_abort
+  use dshr_methods_mod , only : chkerr, CDEPS_REAL_KIND, CS, CL, CXX
   use pio              , only : pio_noerr, pio_seterrorhandling, pio_inq_att, pio_openfile, pio_closefile
   use pio              , only : file_desc_t, pio_inq_varid, iosystem_desc_t, pio_file_is_open
   use pio              , only : pio_nowrite, pio_inquire_dimension, pio_inquire_variable, pio_bcast_error
@@ -114,7 +113,7 @@ module dshr_stream_mod
      character(CS)     :: tInterpAlgo  = 'linear'               ! algorithm to use for time interpolation
      character(CS)     :: mapalgo      = 'bilinear'             ! type of mapping - default is 'bilinear'
      character(CS)     :: readMode     = 'single'               ! stream read model - 'single' or 'full_file'
-     real(r8)          :: dtlimit      = 1.5_r8                 ! delta time ratio limits for time interpolation
+     real(CDEPS_REAL_KIND)          :: dtlimit      = 1.5_CDEPS_REAL_KIND ! delta time ratio limits for time interpolation
      integer           :: offset       = 0                      ! offset in seconds of stream data
      character(CS)     :: calendar     = shr_cal_noleap         ! stream calendar (obtained from first stream data file)
      character(CL)     :: meshFile     = ' '                    ! filename for mesh for all fields on stream (full pathname)
@@ -137,7 +136,7 @@ module dshr_stream_mod
 
   !----- parameters -----
   integer                  :: debug = 0            ! edit/turn-on for debug write statements
-  real(R8)     , parameter :: spd = shr_const_cday ! seconds per day
+  real(CDEPS_REAL_KIND)     , parameter :: spd = shr_const_cday ! seconds per day
   character(*) , parameter :: u_FILE_u = &
        __FILE__
 
@@ -198,7 +197,7 @@ contains
     integer                  :: i, n, nstrms
     integer                  :: status
     integer                  :: tmp(6)
-    real(r8)                 :: rtmp(1)
+    real(CDEPS_REAL_KIND)                 :: rtmp(1)
     character(*),parameter   :: subName = '(shr_stream_init_from_xml) '
     ! --------------------------------------------------------
 
@@ -468,7 +467,7 @@ contains
     character(*)                ,intent(in)              :: stream_tintalgo        ! time interpolation algorithm
     integer                     ,intent(in)              :: stream_offset          ! offset in seconds of stream data
     character(*)                ,intent(in)              :: stream_taxMode         ! time axis mode
-    real(r8)                    ,intent(in)              :: stream_dtlimit         ! ratio of max/min stream delta times
+    real(CDEPS_REAL_KIND)                    ,intent(in)              :: stream_dtlimit         ! ratio of max/min stream delta times
     character(*)                ,intent(in)              :: stream_fldListFile(:)  ! file field names, colon delim list
     character(*)                ,intent(in)              :: stream_fldListModel(:) ! model field names, colon delim list
     character(*)                ,intent(in)              :: stream_filenames(:)    ! stream data filenames (full pathnamesa)
@@ -793,11 +792,11 @@ contains
     integer  :: nYears        ! number of years in data loop
     integer  :: dYear         ! data year corresponding to model year
     integer  :: yy,mm,dd      ! year,month,day
-    real(R8) :: rDateIn       ! model dDateIn + secs/(secs per day)
-    real(R8) :: rDate1        ! stream dDateIn + secs/(secs per day)
-    real(R8) :: rDate2        ! stream dDateIn + secs/(secs per day)
-    real(R8) :: rDatelvd      ! lvd dDate + secs/(secs per day)
-    real(R8) :: rDategvd      ! gvd dDate + secs/(secs per day)
+    real(cdeps_real_kind) :: rDateIn       ! model dDateIn + secs/(secs per day)
+    real(CDEPS_REAL_KIND) :: rDate1        ! stream dDateIn + secs/(secs per day)
+    real(CDEPS_REAL_KIND) :: rDate2        ! stream dDateIn + secs/(secs per day)
+    real(CDEPS_REAL_KIND) :: rDatelvd      ! lvd dDate + secs/(secs per day)
+    real(CDEPS_REAL_KIND) :: rDategvd      ! gvd dDate + secs/(secs per day)
     logical  :: cycle         ! is cycling on or off
     logical  :: limit         ! is limiting on or off
     character(*),parameter :: subName = '(shr_stream_findBounds) '
@@ -1230,11 +1229,11 @@ contains
     character(CS)          :: units,calendar
     character(CS)          :: bunits        ! time units (days,secs,...)
     integer                :: bdate         ! base date: calendar date
-    real(R8)               :: bsec          ! base date: elapsed secs
+    real(CDEPS_REAL_KIND)               :: bsec          ! base date: elapsed secs
     integer                :: ndate         ! calendar date of time value
     integer                :: old_handle    ! previous setting of pio error handling
-    real(R8)               :: nsec          ! elapsed secs on calendar date
-    real(R8),allocatable   :: tvar(:)
+    real(CDEPS_REAL_KIND)               :: nsec          ! elapsed secs on calendar date
+    real(CDEPS_REAL_KIND),allocatable   :: tvar(:)
     character(*),parameter :: subname = '(shr_stream_readTCoord) '
     !-------------------------------------------------------------------------------
 

@@ -25,12 +25,14 @@ module cdeps_datm_comp
   use NUOPC_Model      , only : model_label_SetRunClock => label_SetRunClock
   use NUOPC_Model      , only : model_label_Finalize    => label_Finalize
   use NUOPC_Model      , only : NUOPC_ModelGet, setVM
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
-  use shr_const_mod    , only : shr_const_cday
+
   use shr_sys_mod      , only : shr_sys_abort
   use shr_cal_mod      , only : shr_cal_ymd2date
   use shr_log_mod     , only : shr_log_setLogUnit
   use dshr_methods_mod , only : dshr_state_diagnose, chkerr, memcheck
+  use dshr_methods_mod , only : CDEPS_REAL_KIND, i8, cl, cs  
+  use shr_const_mod    , only : shr_const_cday
+
   use dshr_strdata_mod , only : shr_strdata_type, shr_strdata_init_from_config, shr_strdata_advance
   use dshr_strdata_mod , only : shr_strdata_get_stream_pointer, shr_strdata_setOrbs
   use dshr_mod         , only : dshr_model_initphase, dshr_init
@@ -150,7 +152,7 @@ module cdeps_datm_comp
   type(dfield_type)  , pointer :: dfields    => null()
 
   ! model mask and model fraction
-  real(r8), pointer            :: model_frac(:) => null()
+  real(CDEPS_REAL_KIND), pointer            :: model_frac(:) => null()
   integer , pointer            :: model_mask(:) => null()
 
   ! constants
@@ -421,14 +423,14 @@ contains
     integer                 :: current_day   ! model day
     integer                 :: current_tod   ! model sec into model date
     integer(i8)             :: stepno        ! step number
-    real(r8)                :: nextsw_cday   ! calendar of next atm sw
+    real(CDEPS_REAL_KIND)                :: nextsw_cday   ! calendar of next atm sw
     character(CL)           :: cvalue        ! character string for input config
-    real(R8)                :: orbEccen      ! orb eccentricity (unist-less)
-    real(R8)                :: orbMvelpp     ! orb moving vernal eqa (radians)
-    real(R8)                :: orbLambm0     ! orb mean long of perhelion (radians)
-    real(R8)                :: orbObliqr     ! orb obliquity (radians)
+    real(CDEPS_REAL_KIND)                :: orbEccen      ! orb eccentricity (unist-less)
+    real(CDEPS_REAL_KIND)                :: orbMvelpp     ! orb moving vernal eqa (radians)
+    real(CDEPS_REAL_KIND)                :: orbLambm0     ! orb mean long of perhelion (radians)
+    real(CDEPS_REAL_KIND)                :: orbObliqr     ! orb obliquity (radians)
     logical                 :: isPresent, isSet
-    real(R8)                :: dayofYear
+    real(CDEPS_REAL_KIND)                :: dayofYear
     character(len=*), parameter :: subname=trim(modName)//':(InitializeRealize) '
     !-------------------------------------------------------------------------------
 
@@ -463,7 +465,7 @@ contains
     call ESMF_ClockGet( clock, currTime=currTime, timeStep=timeStep, advanceCount=stepno, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call ESMF_TimeGet(currTime, yy=current_year, mm=current_mon, dd=current_day, s=current_tod, &
-         dayofYear_r8=dayofYear, rc=rc )
+         dayofYear_R8=dayofYear, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(current_year, current_mon, current_day, current_ymd)
 
@@ -517,17 +519,17 @@ contains
     type(ESMF_Time)         :: currTime
     type(ESMF_Time)         :: nextTime
     type(ESMF_TimeInterval) :: timeStep
-    real(r8)                :: nextsw_cday
+    real(CDEPS_REAL_KIND)                :: nextsw_cday
     logical                 :: restart_write         ! restart alarm is ringing
     integer                 :: next_ymd      ! model date
     integer                 :: next_tod      ! model sec into model date
     integer                 :: yr, mon, day  ! year, month, day
     integer(i8)             :: stepno        ! step number
-    real(R8)                :: orbEccen      ! orb eccentricity (unit-less)
-    real(R8)                :: orbMvelpp     ! orb moving vernal eq (radians)
-    real(R8)                :: orbLambm0     ! orb mean long of perhelion (radians)
-    real(R8)                :: orbObliqr     ! orb obliquity (radians)
-    real(R8)                :: dayofYear
+    real(CDEPS_REAL_KIND)                :: orbEccen      ! orb eccentricity (unit-less)
+    real(CDEPS_REAL_KIND)                :: orbMvelpp     ! orb moving vernal eq (radians)
+    real(CDEPS_REAL_KIND)                :: orbLambm0     ! orb mean long of perhelion (radians)
+    real(CDEPS_REAL_KIND)                :: orbObliqr     ! orb obliquity (radians)
+    real(CDEPS_REAL_KIND)                :: dayofYear
     character(len=*),parameter  :: subname=trim(modName)//':(ModelAdvance) '
     !-------------------------------------------------------------------------------
 
@@ -547,7 +549,7 @@ contains
     call ESMF_ClockGet( clock, currTime=currTime, timeStep=timeStep, advanceCount=stepno, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     nextTime = currTime + timeStep
-    call ESMF_TimeGet( nextTime, yy=yr, mm=mon, dd=day, s=next_tod, dayofYear_r8=dayofYear, rc=rc)
+    call ESMF_TimeGet( nextTime, yy=yr, mm=mon, dd=day, s=next_tod, dayofYear_R8=dayofYear, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(yr, mon, day, next_ymd)
 
@@ -592,10 +594,10 @@ contains
     integer                , intent(in)    :: target_ymd       ! model date
     integer                , intent(in)    :: target_tod       ! model sec into model date
     integer                , intent(in)    :: target_mon       ! model month
-    real(R8)               , intent(in)    :: orbEccen         ! orb eccentricity (unit-less)
-    real(R8)               , intent(in)    :: orbMvelpp        ! orb moving vernal eq (radians)
-    real(R8)               , intent(in)    :: orbLambm0        ! orb mean long of perhelion (radians)
-    real(R8)               , intent(in)    :: orbObliqr        ! orb obliquity (radians)
+    real(CDEPS_REAL_KIND)               , intent(in)    :: orbEccen         ! orb eccentricity (unit-less)
+    real(CDEPS_REAL_KIND)               , intent(in)    :: orbMvelpp        ! orb moving vernal eq (radians)
+    real(CDEPS_REAL_KIND)               , intent(in)    :: orbLambm0        ! orb mean long of perhelion (radians)
+    real(CDEPS_REAL_KIND)               , intent(in)    :: orbObliqr        ! orb obliquity (radians)
     logical                , intent(in)    :: restart_write
     integer                , intent(out)   :: rc
 
@@ -865,7 +867,7 @@ contains
   end subroutine datm_comp_run
 
   !===============================================================================
-  real(R8) function getNextRadCDay( julday, tod, stepno, dtime, iradsw )
+  real(CDEPS_REAL_KIND) function getNextRadCDay( julday, tod, stepno, dtime, iradsw )
 
     ! Return the calendar day of the next radiation time-step.
     ! General Usage: nextswday = getNextRadCDay(curr_date) iradsw is
@@ -879,14 +881,14 @@ contains
     !    present time plus 1 timestep.
 
     ! input/output variables
-    real(r8)    , intent(in) :: julday
+    real(CDEPS_REAL_KIND)    , intent(in) :: julday
     integer     , intent(in) :: tod
     integer(i8) , intent(in) :: stepno
     integer     , intent(in) :: dtime
     integer     , intent(in) :: iradsw
 
     ! local variables
-    real(R8) :: nextsw_cday
+    real(CDEPS_REAL_KIND) :: nextsw_cday
     integer  :: liradsw
     integer  :: delta_radsw
     character(*),parameter :: subName =  '(getNextRadCDay) '
@@ -901,14 +903,14 @@ contains
     ! stepno is not used to trigger the calculation of nextsw_cday.
 
     liradsw = iradsw
-    if (liradsw < 0) liradsw  = nint((-liradsw *3600._r8)/dtime)
+    if (liradsw < 0) liradsw  = nint((-liradsw *3600._CDEPS_REAL_KIND)/dtime)
 
     if (liradsw > 1) then
        delta_radsw = liradsw * dtime
        if (mod(tod+dtime,delta_radsw) == 0 .and. stepno > 0) then
           nextsw_cday = julday + 2*dtime/shr_const_cday
        else
-          nextsw_cday = -1._r8
+          nextsw_cday = -1._CDEPS_REAL_KIND
        end if
     else
        nextsw_cday = julday + dtime/shr_const_cday

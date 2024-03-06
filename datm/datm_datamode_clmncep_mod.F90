@@ -3,12 +3,12 @@ module datm_datamode_clmncep_mod
   use ESMF             , only : ESMF_SUCCESS, ESMF_LogWrite, ESMF_State, ESMF_StateItem_Flag
   use ESMF             , only : ESMF_STATEITEM_NOTFOUND, ESMF_LOGMSG_INFO, ESMF_StateGet, operator(/=)
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
-  use shr_sys_mod      , only : shr_sys_abort
+   use shr_sys_mod      , only : shr_sys_abort
   use shr_precip_mod   , only : shr_precip_partition_rain_snow_ramp
   use shr_const_mod    , only : shr_const_spval, shr_const_tkfrz, shr_const_pi
   use shr_const_mod    , only : shr_const_pstd, shr_const_stebol, shr_const_rdair
   use dshr_methods_mod , only : dshr_state_getfldptr, chkerr
+  use dshr_methods_mod , only : CDEPS_REAL_KIND, i8, cl, cs
   use dshr_strdata_mod , only : shr_strdata_type, shr_strdata_get_stream_pointer
   use dshr_mod         , only : dshr_restart_read, dshr_restart_write
   use dshr_strdata_mod , only : shr_strdata_type
@@ -25,83 +25,83 @@ module datm_datamode_clmncep_mod
   private :: datm_esat  ! determine saturation vapor pressure
 
   ! export state data
-  real(r8), pointer :: Sa_z(:)              => null()
-  real(r8), pointer :: Sa_u(:)              => null()
-  real(r8), pointer :: Sa_v(:)              => null()
-  real(r8), pointer :: Sa_tbot(:)           => null()
-  real(r8), pointer :: Sa_ptem(:)           => null()
-  real(r8), pointer :: Sa_shum(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_z(:)              => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_u(:)              => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_v(:)              => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_tbot(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_ptem(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_shum(:)           => null()
 ! TODO: water isotope support
-!  real(r8), pointer :: Sa_shum_wiso(:,:)    => null() ! water isotopes
-  real(r8), pointer :: Sa_dens(:)           => null()
-  real(r8), pointer :: Sa_pbot(:)           => null()
-  real(r8), pointer :: Sa_pslv(:)           => null()
-  real(r8), pointer :: Sa_o3(:)             => null()
-  real(r8), pointer :: Faxa_lwdn(:)         => null()
-  real(r8), pointer :: Faxa_rainc(:)        => null()
-  real(r8), pointer :: Faxa_rainl(:)        => null()
-  real(r8), pointer :: Faxa_snowc(:)        => null()
-  real(r8), pointer :: Faxa_snowl(:)        => null()
-  real(r8), pointer :: Faxa_swndr(:)        => null()
-  real(r8), pointer :: Faxa_swndf(:)        => null()
-  real(r8), pointer :: Faxa_swvdr(:)        => null()
-  real(r8), pointer :: Faxa_swvdf(:)        => null()
-  real(r8), pointer :: Faxa_swnet(:)        => null()
-  real(r8), pointer :: Faxa_ndep(:,:)       => null()
+!  real(CDEPS_REAL_KIND), pointer :: Sa_shum_wiso(:,:)    => null() ! water isotopes
+  real(CDEPS_REAL_KIND), pointer :: Sa_dens(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_pbot(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_pslv(:)           => null()
+  real(CDEPS_REAL_KIND), pointer :: Sa_o3(:)             => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_lwdn(:)         => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_rainc(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_rainl(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_snowc(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_snowl(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swndr(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swndf(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swvdr(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swvdf(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_swnet(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Faxa_ndep(:,:)       => null()
 
   ! stream data
-  real(r8), pointer :: strm_z(:)         => null()
-  real(r8), pointer :: strm_wind(:)      => null()
-  real(r8), pointer :: strm_tdew(:)      => null()
-  real(r8), pointer :: strm_tbot(:)      => null()
-  real(r8), pointer :: strm_pbot(:)      => null()
-  real(r8), pointer :: strm_shum(:)      => null()
-  real(r8), pointer :: strm_lwdn(:)      => null()
-  real(r8), pointer :: strm_rh(:)        => null()
-  real(r8), pointer :: strm_swdn(:)      => null()
-  real(r8), pointer :: strm_swdndf(:)    => null()
-  real(r8), pointer :: strm_swdndr(:)    => null()
-  real(r8), pointer :: strm_precc(:)     => null()
-  real(r8), pointer :: strm_precl(:)     => null()
-  real(r8), pointer :: strm_precn(:)     => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_z(:)         => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_wind(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_tdew(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_tbot(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_pbot(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_shum(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_lwdn(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_rh(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_swdn(:)      => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_swdndf(:)    => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_swdndr(:)    => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_precc(:)     => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_precl(:)     => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_precn(:)     => null()
 
   ! stream data - water isotopes
-  real(r8), pointer :: strm_rh_16O(:)    => null() ! water isoptopes
-  real(r8), pointer :: strm_rh_18O(:)    => null() ! water isoptopes
-  real(r8), pointer :: strm_rh_HDO(:)    => null() ! water isoptopes
-  real(r8), pointer :: strm_precn_16O(:) => null() ! water isoptopes
-  real(r8), pointer :: strm_precn_18O(:) => null() ! water isoptopes
-  real(r8), pointer :: strm_precn_HDO(:) => null() ! water isoptopes
+  real(CDEPS_REAL_KIND), pointer :: strm_rh_16O(:)    => null() ! water isoptopes
+  real(CDEPS_REAL_KIND), pointer :: strm_rh_18O(:)    => null() ! water isoptopes
+  real(CDEPS_REAL_KIND), pointer :: strm_rh_HDO(:)    => null() ! water isoptopes
+  real(CDEPS_REAL_KIND), pointer :: strm_precn_16O(:) => null() ! water isoptopes
+  real(CDEPS_REAL_KIND), pointer :: strm_precn_18O(:) => null() ! water isoptopes
+  real(CDEPS_REAL_KIND), pointer :: strm_precn_HDO(:) => null() ! water isoptopes
 
   ! stream data bias correction
-  real(r8), pointer :: strm_precsf(:)    => null()
+  real(CDEPS_REAL_KIND), pointer :: strm_precsf(:)    => null()
 
   ! stream data anomonly forcing
-  real(r8), pointer :: strm_u_af(:)      => null() ! anomoly forcing
-  real(r8), pointer :: strm_v_af(:)      => null() ! anomoly forcing
-  real(r8), pointer :: strm_prec_af(:)   => null() ! anomoly forcing
-  real(r8), pointer :: strm_tbot_af(:)   => null() ! anomoly forcing
-  real(r8), pointer :: strm_pbot_af(:)   => null() ! anomoly forcing
-  real(r8), pointer :: strm_shum_af(:)   => null() ! anomoly forcing
-  real(r8), pointer :: strm_swdn_af(:)   => null() ! anomoly forcing
-  real(r8), pointer :: strm_lwdn_af(:)   => null() ! anomoly forcing
+  real(CDEPS_REAL_KIND), pointer :: strm_u_af(:)      => null() ! anomoly forcing
+  real(CDEPS_REAL_KIND), pointer :: strm_v_af(:)      => null() ! anomoly forcing
+  real(CDEPS_REAL_KIND), pointer :: strm_prec_af(:)   => null() ! anomoly forcing
+  real(CDEPS_REAL_KIND), pointer :: strm_tbot_af(:)   => null() ! anomoly forcing
+  real(CDEPS_REAL_KIND), pointer :: strm_pbot_af(:)   => null() ! anomoly forcing
+  real(CDEPS_REAL_KIND), pointer :: strm_shum_af(:)   => null() ! anomoly forcing
+  real(CDEPS_REAL_KIND), pointer :: strm_swdn_af(:)   => null() ! anomoly forcing
+  real(CDEPS_REAL_KIND), pointer :: strm_lwdn_af(:)   => null() ! anomoly forcing
 
   ! import state data
-  real(r8), pointer :: Sx_avsdr(:)        => null()
-  real(r8), pointer :: Sx_anidr(:)        => null()
-  real(r8), pointer :: Sx_avsdf(:)        => null()
-  real(r8), pointer :: Sx_anidf(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Sx_avsdr(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Sx_anidr(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Sx_avsdf(:)        => null()
+  real(CDEPS_REAL_KIND), pointer :: Sx_anidf(:)        => null()
 
   logical  :: atm_prognostic = .false.
-  real(r8) :: tbotmax               ! units detector
-  real(r8) :: tdewmax               ! units detector
-  real(r8) :: anidrmax              ! existance detector
+  real(CDEPS_REAL_KIND) :: tbotmax               ! units detector
+  real(CDEPS_REAL_KIND) :: tdewmax               ! units detector
+  real(CDEPS_REAL_KIND) :: anidrmax              ! existance detector
 
-  real(r8) , parameter :: tKFrz    = SHR_CONST_TKFRZ
-  real(r8) , parameter :: degtorad = SHR_CONST_PI/180.0_r8
-  real(r8) , parameter :: pstd     = SHR_CONST_PSTD     ! standard pressure ~ Pa
-  real(r8) , parameter :: stebol   = SHR_CONST_STEBOL   ! Stefan-Boltzmann constant ~ W/m^2/K^4
-  real(r8) , parameter :: rdair    = SHR_CONST_RDAIR    ! dry air gas constant   ~ J/K/kg
+  real(CDEPS_REAL_KIND) , parameter :: tKFrz    = SHR_CONST_TKFRZ
+  real(CDEPS_REAL_KIND) , parameter :: degtorad = SHR_CONST_PI/180.0_CDEPS_REAL_KIND
+  real(CDEPS_REAL_KIND) , parameter :: pstd     = SHR_CONST_PSTD     ! standard pressure ~ Pa
+  real(CDEPS_REAL_KIND) , parameter :: stebol   = SHR_CONST_STEBOL   ! Stefan-Boltzmann constant ~ W/m^2/K^4
+  real(CDEPS_REAL_KIND) , parameter :: rdair    = SHR_CONST_RDAIR    ! dry air gas constant   ~ J/K/kg
 
 
   character(*), parameter :: nullstr = 'null'
@@ -357,15 +357,15 @@ contains
     logical  :: first_time = .true.
     integer  :: n                   ! indices
     integer  :: lsize               ! size of attr vect
-    real(r8) :: rtmp(2)
-    real(r8) :: swndr
-    real(r8) :: swndf
-    real(r8) :: swvdr
-    real(r8) :: swvdf
-    real(r8) :: ratio_rvrf
-    real(r8) :: tbot, pbot
-    real(r8) :: vp
-    real(r8) :: ea, e, qsat, frac
+    real(CDEPS_REAL_KIND) :: rtmp(2)
+    real(CDEPS_REAL_KIND) :: swndr
+    real(CDEPS_REAL_KIND) :: swndf
+    real(CDEPS_REAL_KIND) :: swvdr
+    real(CDEPS_REAL_KIND) :: swvdf
+    real(CDEPS_REAL_KIND) :: ratio_rvrf
+    real(CDEPS_REAL_KIND) :: tbot, pbot
+    real(CDEPS_REAL_KIND) :: vp
+    real(CDEPS_REAL_KIND) :: ea, e, qsat, frac
     type(ESMF_VM) :: vm
     character(len=*), parameter :: subname='(datm_datamode_clmncep_advance): '
     !-------------------------------------------------------------------------------
@@ -413,18 +413,18 @@ contains
 
     do n = 1,lsize
        !--- bottom layer height ---
-       if (.not. associated(strm_z)) Sa_z(n) = 30.0_r8
+       if (.not. associated(strm_z)) Sa_z(n) = 30.0_CDEPS_REAL_KIND
 
        !--- temperature ---
-       if (tbotmax < 50.0_r8) Sa_tbot(n) = Sa_tbot(n) + tkFrz
+       if (tbotmax < 50.0_CDEPS_REAL_KIND) Sa_tbot(n) = Sa_tbot(n) + tkFrz
        ! Limit very cold forcing to 180K
-       Sa_tbot(n) = max(180._r8, Sa_tbot(n))
+       Sa_tbot(n) = max(180._CDEPS_REAL_KIND, Sa_tbot(n))
        Sa_ptem(n) = Sa_tbot(n)
 
        !--- pressure ---
        if (.not. associated(strm_pbot)) then
           Sa_pbot(n) = pstd
-       else if (Sa_pbot(n) == 0._r8) then
+       else if (Sa_pbot(n) == 0._CDEPS_REAL_KIND) then
           ! This happens if you are using points over ocean where the mask is 0
           Sa_pbot(n) = pstd
        end if
@@ -432,7 +432,7 @@ contains
        Sa_pslv(n) = Sa_pbot(n)
 
        !--- u, v wind velocity ---
-       Sa_u(n) = strm_wind(n)/sqrt(2.0_r8)
+       Sa_u(n) = strm_wind(n)/sqrt(2.0_CDEPS_REAL_KIND)
        Sa_v(n) = Sa_u(n)
 
        !--- specific humidity ---
@@ -440,13 +440,13 @@ contains
        pbot = Sa_pbot(n)
        if (associated(strm_shum)) then
           e = datm_esat(tbot,tbot)
-          qsat = (0.622_r8 * e)/(pbot - 0.378_r8 * e)
+          qsat = (0.622_CDEPS_REAL_KIND * e)/(pbot - 0.378_CDEPS_REAL_KIND * e)
           if (qsat < Sa_shum(n)) then
              Sa_shum(n) = qsat
           endif
        else if (associated(strm_rh)) then
-          e = strm_rh(n) * 0.01_r8 * datm_esat(tbot,tbot)
-          qsat = (0.622_r8 * e)/(pbot - 0.378_r8 * e)
+          e = strm_rh(n) * 0.01_CDEPS_REAL_KIND * datm_esat(tbot,tbot)
+          qsat = (0.622_CDEPS_REAL_KIND * e)/(pbot - 0.378_CDEPS_REAL_KIND * e)
           Sa_shum(n) = qsat
           ! for isotopic tracer specific humidity, expect a delta, just keep the delta from the input file
           ! if (associated(strm_rh_16O) .and. associated(strm_rh_18O) .and. associated(strm_rh_HDO)) then
@@ -455,60 +455,60 @@ contains
           !   Sa_shum_wiso(3,n) = strm_rh_HDO(n)
           ! end if
        else if (associated(strm_tdew)) then
-          if (tdewmax < 50.0_r8) strm_tdew(n) = strm_tdew(n) + tkFrz
+          if (tdewmax < 50.0_CDEPS_REAL_KIND) strm_tdew(n) = strm_tdew(n) + tkFrz
           e = datm_esat(strm_tdew(n),tbot)
-          qsat = (0.622_r8 * e)/(pbot - 0.378_r8 * e)
+          qsat = (0.622_CDEPS_REAL_KIND * e)/(pbot - 0.378_CDEPS_REAL_KIND * e)
           Sa_shum(n) = qsat
        else
           call shr_sys_abort(subname//'ERROR: cannot compute shum')
        endif
        !--- density ---
-       vp = (Sa_shum(n)*pbot) / (0.622_r8 + 0.378_r8 * Sa_shum(n))
-       Sa_dens(n) = (pbot - 0.378_r8 * vp) / (tbot*rdair)
+       vp = (Sa_shum(n)*pbot) / (0.622_CDEPS_REAL_KIND + 0.378_CDEPS_REAL_KIND * Sa_shum(n))
+       Sa_dens(n) = (pbot - 0.378_CDEPS_REAL_KIND * vp) / (tbot*rdair)
 
        !--- downward longwave ---
        if (.not. associated(strm_lwdn)) then
-          e  = Sa_pslv(n) * Sa_shum(n) / (0.622_r8 + 0.378_r8 * Sa_shum(n))
-          ea = 0.70_r8 + 5.95e-05_r8 * 0.01_r8 * e * exp(1500.0_r8/tbot)
+          e  = Sa_pslv(n) * Sa_shum(n) / (0.622_CDEPS_REAL_KIND + 0.378_CDEPS_REAL_KIND * Sa_shum(n))
+          ea = 0.70_CDEPS_REAL_KIND + 5.95e-05_CDEPS_REAL_KIND * 0.01_CDEPS_REAL_KIND * e * exp(1500.0_CDEPS_REAL_KIND/tbot)
           Faxa_lwdn(n) = ea * stebol * tbot**4
        endif
 
        !--- shortwave radiation ---
        if (associated(strm_swdndf) .and. associated(strm_swdndr)) then
-          Faxa_swndr(n) = strm_swdndr(n) * 0.50_r8
-          Faxa_swvdr(n) = strm_swdndr(n) * 0.50_r8
-          Faxa_swndf(n) = strm_swdndf(n) * 0.50_r8
-          Faxa_swvdf(n) = strm_swdndf(n) * 0.50_r8
+          Faxa_swndr(n) = strm_swdndr(n) * 0.50_CDEPS_REAL_KIND
+          Faxa_swvdr(n) = strm_swdndr(n) * 0.50_CDEPS_REAL_KIND
+          Faxa_swndf(n) = strm_swdndf(n) * 0.50_CDEPS_REAL_KIND
+          Faxa_swvdf(n) = strm_swdndf(n) * 0.50_CDEPS_REAL_KIND
        elseif (associated(strm_swdn)) then
           ! relationship between incoming NIR or VIS radiation and ratio of
           ! direct to diffuse radiation calculated based on one year's worth of
           ! hourly CAM output from CAM version cam3_5_55
-          swndr = strm_swdn(n) * 0.50_r8
-          ratio_rvrf =  min(0.99_r8,max(0.29548_r8 + 0.00504_r8*swndr  &
-               -1.4957e-05_r8*swndr**2 + 1.4881e-08_r8*swndr**3,0.01_r8))
+          swndr = strm_swdn(n) * 0.50_CDEPS_REAL_KIND
+          ratio_rvrf =  min(0.99_CDEPS_REAL_KIND,max(0.29548_CDEPS_REAL_KIND + 0.00504_CDEPS_REAL_KIND*swndr  &
+               -1.4957e-05_CDEPS_REAL_KIND*swndr**2 + 1.4881e-08_CDEPS_REAL_KIND*swndr**3,0.01_CDEPS_REAL_KIND))
           Faxa_swndr(n) = ratio_rvrf*swndr
-          swndf = strm_swdn(n) * 0.50_r8
-          Faxa_swndf(n) = (1._r8 - ratio_rvrf)*swndf
+          swndf = strm_swdn(n) * 0.50_CDEPS_REAL_KIND
+          Faxa_swndf(n) = (1._CDEPS_REAL_KIND - ratio_rvrf)*swndf
 
-          swvdr = strm_swdn(n) * 0.50_r8
-          ratio_rvrf =   min(0.99_r8,max(0.17639_r8 + 0.00380_r8*swvdr  &
-               -9.0039e-06_r8*swvdr**2 + 8.1351e-09_r8*swvdr**3,0.01_r8))
+          swvdr = strm_swdn(n) * 0.50_CDEPS_REAL_KIND
+          ratio_rvrf =   min(0.99_CDEPS_REAL_KIND,max(0.17639_CDEPS_REAL_KIND + 0.00380_CDEPS_REAL_KIND*swvdr  &
+               -9.0039e-06_CDEPS_REAL_KIND*swvdr**2 + 8.1351e-09_CDEPS_REAL_KIND*swvdr**3,0.01_CDEPS_REAL_KIND))
           Faxa_swvdr(n) = ratio_rvrf*swvdr
-          swvdf = strm_swdn(n) * 0.50_r8
-          Faxa_swvdf(n) = (1._r8 - ratio_rvrf)*swvdf
+          swvdf = strm_swdn(n) * 0.50_CDEPS_REAL_KIND
+          Faxa_swvdf(n) = (1._CDEPS_REAL_KIND - ratio_rvrf)*swvdf
        else
           call shr_sys_abort(subName//'ERROR: cannot compute short-wave down')
        endif
 
        !--- swnet: a diagnostic quantity ---
-       if (anidrmax < 1.0e-8 .or. anidrmax > SHR_CONST_SPVAL * 0.9_r8) then
-          Faxa_swnet(n) = 0.0_r8
+       if (anidrmax < 1.0e-8 .or. anidrmax > SHR_CONST_SPVAL * 0.9_CDEPS_REAL_KIND) then
+          Faxa_swnet(n) = 0.0_CDEPS_REAL_KIND
        else if ( associated(Sx_anidr) .and. associated(Sx_anidf) .and. &
                  associated(Sx_avsdr) .and. associated(Sx_avsdf)) then
-          Faxa_swnet(n) = (1.0_r8-Sx_anidr(n))*Faxa_swndr(n) + &
-                          (1.0_r8-Sx_avsdr(n))*Faxa_swvdr(n) + &
-                          (1.0_r8-Sx_anidf(n))*Faxa_swndf(n) + &
-                          (1.0_r8-Sx_avsdf(n))*Faxa_swvdf(n)
+          Faxa_swnet(n) = (1.0_CDEPS_REAL_KIND-Sx_anidr(n))*Faxa_swndr(n) + &
+                          (1.0_CDEPS_REAL_KIND-Sx_avsdr(n))*Faxa_swvdr(n) + &
+                          (1.0_CDEPS_REAL_KIND-Sx_anidf(n))*Faxa_swndf(n) + &
+                          (1.0_CDEPS_REAL_KIND-Sx_avsdf(n))*Faxa_swvdf(n)
        else
           Faxa_swnet(n) = Faxa_swndr(n) + Faxa_swvdr(n) + Faxa_swndf(n) + Faxa_swvdf(n)
        endif
@@ -518,18 +518,18 @@ contains
           Faxa_rainc(n) = strm_precc(n)
           Faxa_rainl(n) = strm_precl(n)
        else if (associated(strm_precn)) then
-          Faxa_rainc(n) = strm_precn(n)*0.1_r8
-          Faxa_rainl(n) = strm_precn(n)*0.9_r8
+          Faxa_rainc(n) = strm_precn(n)*0.1_CDEPS_REAL_KIND
+          Faxa_rainl(n) = strm_precn(n)*0.9_CDEPS_REAL_KIND
        else
           call shr_sys_abort(subName//'ERROR: cannot compute rain and snow')
        endif
 
        !--- split precip between rain & snow ---
        call shr_precip_partition_rain_snow_ramp(tbot, frac)
-       Faxa_snowc(n) = max(0.0_r8, Faxa_rainc(n)*(1.0_r8 - frac))
-       Faxa_snowl(n) = max(0.0_r8, Faxa_rainl(n)*(1.0_r8 - frac))
-       Faxa_rainc(n) = max(0.0_r8, Faxa_rainc(n)*(         frac))
-       Faxa_rainl(n) = max(0.0_r8, Faxa_rainl(n)*(         frac))
+       Faxa_snowc(n) = max(0.0_CDEPS_REAL_KIND, Faxa_rainc(n)*(1.0_CDEPS_REAL_KIND - frac))
+       Faxa_snowl(n) = max(0.0_CDEPS_REAL_KIND, Faxa_rainl(n)*(1.0_CDEPS_REAL_KIND - frac))
+       Faxa_rainc(n) = max(0.0_CDEPS_REAL_KIND, Faxa_rainc(n)*(         frac))
+       Faxa_rainl(n) = max(0.0_CDEPS_REAL_KIND, Faxa_rainl(n)*(         frac))
 
     end do
 
@@ -541,10 +541,10 @@ contains
     ! bias correct precipitation relative to observed
     ! (via bias_correct nameslist option)
     if (associated(strm_precsf)) then
-       Faxa_snowc(:) = Faxa_snowc(:) * min(1.e2_r8,strm_precsf(:))
-       Faxa_snowl(:) = Faxa_snowl(:) * min(1.e2_r8,strm_precsf(:))
-       Faxa_rainc(:) = Faxa_rainc(:) * min(1.e2_r8,strm_precsf(:))
-       Faxa_rainl(:) = Faxa_rainl(:) * min(1.e2_r8,strm_precsf(:))
+       Faxa_snowc(:) = Faxa_snowc(:) * min(1.e2_CDEPS_REAL_KIND,strm_precsf(:))
+       Faxa_snowl(:) = Faxa_snowl(:) * min(1.e2_CDEPS_REAL_KIND,strm_precsf(:))
+       Faxa_rainc(:) = Faxa_rainc(:) * min(1.e2_CDEPS_REAL_KIND,strm_precsf(:))
+       Faxa_rainl(:) = Faxa_rainl(:) * min(1.e2_CDEPS_REAL_KIND,strm_precsf(:))
     endif
 
     ! adjust atmospheric input fields if anomaly forcing streams exist
@@ -556,8 +556,8 @@ contains
     if (associated(strm_shum_af)) then  ! specific humidity
        Sa_shum(:) = Sa_shum(:) + strm_shum_af(:)
        ! avoid possible negative q values
-       where (Sa_shum < 0._r8)
-          Sa_shum = 1.e-6_r8
+       where (Sa_shum < 0._CDEPS_REAL_KIND)
+          Sa_shum = 1.e-6_CDEPS_REAL_KIND
        end where
     endif
     if (associated(strm_pbot_af)) then ! pressure
@@ -585,7 +585,7 @@ contains
 
     if (associated(Faxa_ndep)) then
        ! convert ndep flux to units of kgN/m2/s (input is in gN/m2/s)
-       Faxa_ndep(:,:) = Faxa_ndep(:,:) / 1000._r8
+       Faxa_ndep(:,:) = Faxa_ndep(:,:) / 1000._CDEPS_REAL_KIND
     end if
 
   end subroutine datm_datamode_clmncep_advance
@@ -626,7 +626,7 @@ contains
   end subroutine datm_datamode_clmncep_restart_read
 
   !===============================================================================
-  real(r8) function datm_eSat(tK,tKbot)
+  real(CDEPS_REAL_KIND) function datm_eSat(tK,tKbot)
 
     !----------------------------------------------------------------------------
     ! use polynomials to calculate saturation vapor pressure and derivative with
@@ -635,36 +635,36 @@ contains
     !----------------------------------------------------------------------------
 
     ! input/output variables
-    real(r8),intent(in) :: tK    ! temp used in polynomial calculation
-    real(r8),intent(in) :: tKbot ! bottom atm temp
+    real(CDEPS_REAL_KIND),intent(in) :: tK    ! temp used in polynomial calculation
+    real(CDEPS_REAL_KIND),intent(in) :: tKbot ! bottom atm temp
 
     ! local variables
-    real(r8)           :: t     ! tK converted to Celcius
-    real(r8),parameter :: tkFrz = shr_const_tkfrz  ! freezing T of fresh water ~ K
+    real(CDEPS_REAL_KIND)           :: t     ! tK converted to Celcius
+    real(CDEPS_REAL_KIND),parameter :: tkFrz = shr_const_tkfrz  ! freezing T of fresh water ~ K
 
     !--- coefficients for esat over water ---
-    real(r8),parameter :: a0=6.107799961_r8
-    real(r8),parameter :: a1=4.436518521e-01_r8
-    real(r8),parameter :: a2=1.428945805e-02_r8
-    real(r8),parameter :: a3=2.650648471e-04_r8
-    real(r8),parameter :: a4=3.031240396e-06_r8
-    real(r8),parameter :: a5=2.034080948e-08_r8
-    real(r8),parameter :: a6=6.136820929e-11_r8
+    real(CDEPS_REAL_KIND),parameter :: a0=6.107799961_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: a1=4.436518521e-01_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: a2=1.428945805e-02_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: a3=2.650648471e-04_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: a4=3.031240396e-06_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: a5=2.034080948e-08_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: a6=6.136820929e-11_CDEPS_REAL_KIND
 
     !--- coefficients for esat over ice ---
-    real(r8),parameter :: b0=6.109177956_r8
-    real(r8),parameter :: b1=5.034698970e-01_r8
-    real(r8),parameter :: b2=1.886013408e-02_r8
-    real(r8),parameter :: b3=4.176223716e-04_r8
-    real(r8),parameter :: b4=5.824720280e-06_r8
-    real(r8),parameter :: b5=4.838803174e-08_r8
-    real(r8),parameter :: b6=1.838826904e-10_r8
+    real(CDEPS_REAL_KIND),parameter :: b0=6.109177956_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: b1=5.034698970e-01_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: b2=1.886013408e-02_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: b3=4.176223716e-04_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: b4=5.824720280e-06_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: b5=4.838803174e-08_CDEPS_REAL_KIND
+    real(CDEPS_REAL_KIND),parameter :: b6=1.838826904e-10_CDEPS_REAL_KIND
 
-    t = min( 50.0_r8, max(-50.0_r8,(tK-tKfrz)) )
+    t = min( 50.0_CDEPS_REAL_KIND, max(-50.0_CDEPS_REAL_KIND,(tK-tKfrz)) )
     if ( tKbot < tKfrz) then
-       datm_eSat = 100.0_r8*(b0+t*(b1+t*(b2+t*(b3+t*(b4+t*(b5+t*b6))))))
+       datm_eSat = 100.0_CDEPS_REAL_KIND*(b0+t*(b1+t*(b2+t*(b3+t*(b4+t*(b5+t*b6))))))
     else
-       datm_eSat = 100.0_r8*(a0+t*(a1+t*(a2+t*(a3+t*(a4+t*(a5+t*a6))))))
+       datm_eSat = 100.0_CDEPS_REAL_KIND*(a0+t*(a1+t*(a2+t*(a3+t*(a4+t*(a5+t*a6))))))
     end if
 
   end function datm_eSat
