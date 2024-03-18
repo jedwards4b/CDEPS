@@ -6,7 +6,7 @@ module datm_datamode_simple_mod
   use ESMF             , only : ESMF_SUCCESS, ESMF_LogWrite, ESMF_FILEFORMAT_ESMFMESH
   use ESMF             , only : ESMF_StateItem_Flag, ESMF_STATEITEM_NOTFOUND, operator(/=)
   use ESMF             , only : ESMF_FieldBundleCreate, ESMF_FieldCreate, ESMF_MESHLOC_ELEMENT
-  use ESMF             , only : ESMF_FieldBundleAdd, ESMF_LOGMSG_INFO, ESMF_TYPEKIND_R8
+  use ESMF             , only : ESMF_FieldBundleAdd, ESMF_LOGMSG_INFO
   use ESMF             , only : ESMF_RouteHandleDestroy, ESMF_EXTRAPMETHOD_NEAREST_STOD
   use ESMF             , only : ESMF_POLEMETHOD_ALLAVG, ESMF_REGRIDMETHOD_BILINEAR
   use ESMF             , only : ESMF_DistGridGet, ESMF_FieldRegridStore, ESMF_FieldRedistStore
@@ -17,12 +17,12 @@ module datm_datamode_simple_mod
   use pio              , only : pio_inq_varndims, pio_inq_vardimid, pio_double
   use pio              , only : pio_closefile
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod      , only : shr_sys_abort
   use shr_cal_mod      , only : shr_cal_date2julian
   use shr_const_mod    , only : shr_const_tkfrz, shr_const_pi
   use dshr_strdata_mod , only : shr_strdata_get_stream_pointer, shr_strdata_type
   use dshr_methods_mod , only : dshr_state_getfldptr, dshr_fldbun_getfldptr, dshr_fldbun_regrid, chkerr
+  use dshr_methods_mod , only : cdeps_real_kind, i8, cl, cs
   use dshr_mod         , only : dshr_restart_read, dshr_restart_write
   use dshr_strdata_mod , only : shr_strdata_type
   use dshr_fldlist_mod , only : fldlist_type, dshr_fldlist_add
@@ -37,46 +37,46 @@ module datm_datamode_simple_mod
   public  :: datm_datamode_simple_restart_read
 
   ! export state pointers
-  real(r8), pointer :: Sa_u(:)       => null()
-  real(r8), pointer :: Sa_v(:)       => null()
-  real(r8), pointer :: Sa_z(:)       => null()
-  real(r8), pointer :: Sa_tbot(:)    => null()
-  real(r8), pointer :: Sa_ptem(:)    => null()
-  real(r8), pointer :: Sa_shum(:)    => null()
-  real(r8), pointer :: Sa_pbot(:)    => null()
-  real(r8), pointer :: Sa_dens(:)    => null()
-  real(r8), pointer :: Sa_pslv(:)    => null()
-  real(r8), pointer :: Faxa_lwdn(:)  => null()
-  real(r8), pointer :: Faxa_rainc(:) => null()
-  real(r8), pointer :: Faxa_rainl(:) => null()
-  real(r8), pointer :: Faxa_snowc(:) => null()
-  real(r8), pointer :: Faxa_snowl(:) => null()
-  real(r8), pointer :: Faxa_swndr(:) => null()
-  real(r8), pointer :: Faxa_swndf(:) => null()
-  real(r8), pointer :: Faxa_swvdr(:) => null()
-  real(r8), pointer :: Faxa_swvdf(:) => null()
-  real(r8), pointer :: Faxa_swnet(:) => null()
-  real(r8), pointer :: Faxa_ndep(:,:) => null()
+  real(cdeps_real_kind), pointer :: Sa_u(:)       => null()
+  real(cdeps_real_kind), pointer :: Sa_v(:)       => null()
+  real(cdeps_real_kind), pointer :: Sa_z(:)       => null()
+  real(cdeps_real_kind), pointer :: Sa_tbot(:)    => null()
+  real(cdeps_real_kind), pointer :: Sa_ptem(:)    => null()
+  real(cdeps_real_kind), pointer :: Sa_shum(:)    => null()
+  real(cdeps_real_kind), pointer :: Sa_pbot(:)    => null()
+  real(cdeps_real_kind), pointer :: Sa_dens(:)    => null()
+  real(cdeps_real_kind), pointer :: Sa_pslv(:)    => null()
+  real(cdeps_real_kind), pointer :: Faxa_lwdn(:)  => null()
+  real(cdeps_real_kind), pointer :: Faxa_rainc(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_rainl(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_snowc(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_snowl(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_swndr(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_swndf(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_swvdr(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_swvdf(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_swnet(:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_ndep(:,:) => null()
 
   ! othe module arrays
-  real(R8), pointer :: yc(:)                 ! array of model latitudes
-  real(R8), pointer :: xc(:)                 ! array of model longitudes
+  real(cdeps_real_kind), pointer :: yc(:)                 ! array of model latitudes
+  real(cdeps_real_kind), pointer :: xc(:)                 ! array of model longitudes
 
   ! constant forcing values to be set via const_forcing_nml
-  real(R8) :: dn10 = 1.204_R8
-  real(R8) :: slp = 101325.0_R8
-  real(R8) :: q = 0.0_R8
-  real(R8) :: t = 273.15_R8
-  real(R8) :: u = 0.0_R8
-  real(R8) :: v = 0.0_R8
-  real(R8) :: peak_swdn = 330.0_R8
-  real(R8) :: peak_lwdn = 450.0_R8
+  real(cdeps_real_kind) :: dn10 = 1.204_cdeps_real_kind
+  real(cdeps_real_kind) :: slp = 101325.0_cdeps_real_kind
+  real(cdeps_real_kind) :: q = 0.0_cdeps_real_kind
+  real(cdeps_real_kind) :: t = 273.15_cdeps_real_kind
+  real(cdeps_real_kind) :: u = 0.0_cdeps_real_kind
+  real(cdeps_real_kind) :: v = 0.0_cdeps_real_kind
+  real(cdeps_real_kind) :: peak_swdn = 330.0_cdeps_real_kind
+  real(cdeps_real_kind) :: peak_lwdn = 450.0_cdeps_real_kind
 
   ! constants
-  real(R8) , parameter :: tKFrz    = SHR_CONST_TKFRZ
-  real(R8) , parameter :: degtorad = SHR_CONST_PI/180.0_R8
-  real(R8) , parameter :: phs_c0   =   0.298_R8
-  real(R8) , parameter :: dLWarc   =  -5.000_R8
+  real(cdeps_real_kind) , parameter :: tKFrz    = SHR_CONST_TKFRZ
+  real(cdeps_real_kind) , parameter :: degtorad = SHR_CONST_PI/180.0_cdeps_real_kind
+  real(cdeps_real_kind) , parameter :: phs_c0   =   0.298_cdeps_real_kind
+  real(cdeps_real_kind) , parameter :: dLWarc   =  -5.000_cdeps_real_kind
 
   character(*), parameter :: nullstr = 'null'
   character(*), parameter :: rpfile  = 'rpointer.atm'
@@ -106,7 +106,7 @@ contains
     integer                       :: ierr       ! error code
     integer                       :: nu         ! unit number
     character(len=*)  , parameter :: subname='(datm_datamode_simple_advertise): '
-    real(R8)                      :: bcasttmp(8)
+    real(cdeps_real_kind)                      :: bcasttmp(8)
 
     !-------------------------------------------------------------------------------
 
@@ -192,7 +192,7 @@ contains
     integer           :: lsize
     integer           :: spatialDim         ! number of dimension in mesh
     integer           :: numOwnedElements   ! size of mesh
-    real(r8), pointer :: ownedElemCoords(:) ! mesh lat and lons
+    real(cdeps_real_kind), pointer :: ownedElemCoords(:) ! mesh lat and lons
     type(ESMF_StateItem_Flag) :: itemFlag
     character(len=*), parameter :: subname='(datm_init_pointers): '
     !-------------------------------------------------------------------------------
@@ -276,12 +276,12 @@ contains
     ! local variables
     integer  :: n
     integer  :: lsize
-    real(R8) :: rday               ! elapsed day
+    real(cdeps_real_kind) :: rday               ! elapsed day
     character(len=*), parameter :: subname='(datm_datamode_simple): '
-    real(R8), parameter :: epsilon_deg = 23.45 ! axial tilt of the Earth
-    real(R8) :: solar_decl ! solar declination angle (rad) to be used in idealized radiation calculations
-    real(R8) :: hour_angle ! hour angle (rad) to be used in idealized radiation calculations
-    real(R8) :: zenith_angle ! solar senith angle (rad) to be used in idealized radiation calculations
+    real(cdeps_real_kind), parameter :: epsilon_deg = 23.45 ! axial tilt of the Earth
+    real(cdeps_real_kind) :: solar_decl ! solar declination angle (rad) to be used in idealized radiation calculations
+    real(cdeps_real_kind) :: hour_angle ! hour angle (rad) to be used in idealized radiation calculations
+    real(cdeps_real_kind) :: zenith_angle ! solar senith angle (rad) to be used in idealized radiation calculations
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -289,10 +289,10 @@ contains
     lsize = size(Sa_z)
 
     call shr_cal_date2julian(target_ymd, target_tod, rday, model_calendar)
-    rday = mod((rday - 1.0_R8),365.0_R8)
+    rday = mod((rday - 1.0_cdeps_real_kind),365.0_cdeps_real_kind)
 
     do n = 1,lsize
-      Sa_z(n) = 10.0_R8
+      Sa_z(n) = 10.0_cdeps_real_kind
 
       !--- (i) Set forcing fields to constant values read from the namelist file ---
       Sa_dens(n) = dn10
@@ -306,37 +306,37 @@ contains
 
       !--- (ii) Set precipitation (currently all zeros) ---
 
-      Faxa_rainc(n) = 0.0_R8               ! default zero
-      Faxa_snowc(n) = 0.0_R8
+      Faxa_rainc(n) = 0.0_cdeps_real_kind               ! default zero
+      Faxa_snowc(n) = 0.0_cdeps_real_kind
       if (Sa_tbot(n) < tKFrz ) then        ! assign precip to rain/snow components
-         Faxa_rainl(n) = 0.0_R8
-         Faxa_snowl(n) = 0.0_R8 ! todo
+         Faxa_rainl(n) = 0.0_cdeps_real_kind
+         Faxa_snowl(n) = 0.0_cdeps_real_kind ! todo
       else
-         Faxa_rainl(n) = 0.0_R8 ! todo
-         Faxa_snowl(n) = 0.0_R8
+         Faxa_rainl(n) = 0.0_cdeps_real_kind ! todo
+         Faxa_snowl(n) = 0.0_cdeps_real_kind
       endif
 
       !--- (iii) RADIATION DATA ---
 
       ! long wave
-      solar_decl = (epsilon_deg * degtorad) * sin( 2.0_R8 * shr_const_pi * (int(rday) + 284.0_R8) / 365.0_R8)
+      solar_decl = (epsilon_deg * degtorad) * sin( 2.0_cdeps_real_kind * shr_const_pi * (int(rday) + 284.0_cdeps_real_kind) / 365.0_cdeps_real_kind)
       zenith_angle = acos(sin(yc(n) * degtorad ) * sin(solar_decl) + cos(yc(n) * degtorad) * cos(solar_decl) )
-      Faxa_lwdn(n) = max(0.0_R8, peak_lwdn * cos(zenith_angle)) 
+      Faxa_lwdn(n) = max(0.0_cdeps_real_kind, peak_lwdn * cos(zenith_angle)) 
 
       ! short wave
-      hour_angle = (15.0_R8 * (target_tod/3600.0_R8 - 12.0_R8) + xc(n) ) * degtorad
+      hour_angle = (15.0_cdeps_real_kind * (target_tod/3600.0_cdeps_real_kind - 12.0_cdeps_real_kind) + xc(n) ) * degtorad
       zenith_angle = acos(sin(yc(n) * degtorad ) * sin(solar_decl) + cos(yc(n) * degtorad) * cos(solar_decl) * cos(hour_angle) )
-      Faxa_swnet(n) = max(0.0_R8, peak_swdn * cos(zenith_angle))
-      Faxa_swvdr(n) = Faxa_swnet(n)*(0.28_R8)
-      Faxa_swndr(n) = Faxa_swnet(n)*(0.31_R8)
-      Faxa_swvdf(n) = Faxa_swnet(n)*(0.24_R8)
-      Faxa_swndf(n) = Faxa_swnet(n)*(0.17_R8)
+      Faxa_swnet(n) = max(0.0_cdeps_real_kind, peak_swdn * cos(zenith_angle))
+      Faxa_swvdr(n) = Faxa_swnet(n)*(0.28_cdeps_real_kind)
+      Faxa_swndr(n) = Faxa_swnet(n)*(0.31_cdeps_real_kind)
+      Faxa_swvdf(n) = Faxa_swnet(n)*(0.24_cdeps_real_kind)
+      Faxa_swndf(n) = Faxa_swnet(n)*(0.17_cdeps_real_kind)
 
     enddo   ! lsize
 
     if (associated(Faxa_ndep)) then
        ! convert ndep flux to units of kgN/m2/s (input is in gN/m2/s)
-       Faxa_ndep(:,:) = Faxa_ndep(:,:) / 1000._r8
+       Faxa_ndep(:,:) = Faxa_ndep(:,:) / 1000._cdeps_real_kind
     end if
 
   end subroutine datm_datamode_simple_advance

@@ -2,11 +2,12 @@ module datm_datamode_gefs_mod
 
   use ESMF             , only : ESMF_State, ESMF_SUCCESS, ESMF_LogWrite, ESMF_LOGMSG_INFO
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
+  
   use shr_sys_mod      , only : shr_sys_abort
   use shr_precip_mod   , only : shr_precip_partition_rain_snow_ramp
   use shr_const_mod    , only : shr_const_tkfrz, shr_const_rhofw, shr_const_rdair
   use dshr_methods_mod , only : dshr_state_getfldptr, chkerr
+  use dshr_methods_mod , only : cdeps_real_kind, i8, cl, cs
   use dshr_strdata_mod , only : shr_strdata_type, shr_strdata_get_stream_pointer
   use dshr_mod         , only : dshr_restart_read, dshr_restart_write
   use dshr_strdata_mod , only : shr_strdata_type
@@ -22,34 +23,34 @@ module datm_datamode_gefs_mod
   public  :: datm_datamode_gefs_restart_read
 
   ! export state data
-  real(r8), pointer :: Sa_z(:)              => null()
-  real(r8), pointer :: Sa_u(:)              => null()
-  real(r8), pointer :: Sa_v(:)              => null()
-  real(r8), pointer :: Sa_tbot(:)           => null()
-  real(r8), pointer :: Sa_shum(:)           => null()
-  real(r8), pointer :: Sa_pbot(:)           => null()
-  real(r8), pointer :: Sa_u10m(:)           => null()
-  real(r8), pointer :: Sa_v10m(:)           => null()
-  real(r8), pointer :: Sa_t2m(:)            => null()
-  real(r8), pointer :: Sa_q2m(:)            => null()
-  real(r8), pointer :: Sa_pslv(:)           => null()
-  real(r8), pointer :: Faxa_lwdn(:)         => null()
-  real(r8), pointer :: Faxa_rain(:)         => null()
-  real(r8), pointer :: Faxa_snow(:)         => null()
-  real(r8), pointer :: Faxa_swndr(:)        => null()
-  real(r8), pointer :: Faxa_swndf(:)        => null()
-  real(r8), pointer :: Faxa_swvdr(:)        => null()
-  real(r8), pointer :: Faxa_swvdf(:)        => null()
+  real(cdeps_real_kind), pointer :: Sa_z(:)              => null()
+  real(cdeps_real_kind), pointer :: Sa_u(:)              => null()
+  real(cdeps_real_kind), pointer :: Sa_v(:)              => null()
+  real(cdeps_real_kind), pointer :: Sa_tbot(:)           => null()
+  real(cdeps_real_kind), pointer :: Sa_shum(:)           => null()
+  real(cdeps_real_kind), pointer :: Sa_pbot(:)           => null()
+  real(cdeps_real_kind), pointer :: Sa_u10m(:)           => null()
+  real(cdeps_real_kind), pointer :: Sa_v10m(:)           => null()
+  real(cdeps_real_kind), pointer :: Sa_t2m(:)            => null()
+  real(cdeps_real_kind), pointer :: Sa_q2m(:)            => null()
+  real(cdeps_real_kind), pointer :: Sa_pslv(:)           => null()
+  real(cdeps_real_kind), pointer :: Faxa_lwdn(:)         => null()
+  real(cdeps_real_kind), pointer :: Faxa_rain(:)         => null()
+  real(cdeps_real_kind), pointer :: Faxa_snow(:)         => null()
+  real(cdeps_real_kind), pointer :: Faxa_swndr(:)        => null()
+  real(cdeps_real_kind), pointer :: Faxa_swndf(:)        => null()
+  real(cdeps_real_kind), pointer :: Faxa_swvdr(:)        => null()
+  real(cdeps_real_kind), pointer :: Faxa_swvdf(:)        => null()
 
   ! stream data
-  real(r8), pointer :: strm_mask(:)         => null()
+  real(cdeps_real_kind), pointer :: strm_mask(:)         => null()
 
-  real(r8) :: tbotmax ! units detector
-  real(r8) :: maskmax ! units detector
+  real(cdeps_real_kind) :: tbotmax ! units detector
+  real(cdeps_real_kind) :: maskmax ! units detector
 
-  real(r8) , parameter :: tKFrz    = SHR_CONST_TKFRZ
-  real(r8) , parameter :: rdair    = SHR_CONST_RDAIR ! dry air gas constant ~ J/K/kg
-  real(r8) , parameter :: rhofw    = SHR_CONST_RHOFW ! density of fresh water ~ kg/m^3
+  real(cdeps_real_kind) , parameter :: tKFrz    = SHR_CONST_TKFRZ
+  real(cdeps_real_kind) , parameter :: rdair    = SHR_CONST_RDAIR ! dry air gas constant ~ J/K/kg
+  real(cdeps_real_kind) , parameter :: rhofw    = SHR_CONST_RHOFW ! density of fresh water ~ kg/m^3
 
   character(*), parameter :: nullstr = 'undefined'
   character(*), parameter :: rpfile  = 'rpointer.atm'
@@ -180,7 +181,7 @@ contains
     logical  :: first_time = .true.
     integer  :: n                   ! indices
     integer  :: lsize               ! size of attr vect
-    real(r8) :: rtmp(2)
+    real(cdeps_real_kind) :: rtmp(2)
     type(ESMF_VM) :: vm
     character(len=*), parameter :: subname='(datm_datamode_gefs_advance): '
     !-------------------------------------------------------------------------------
@@ -213,9 +214,9 @@ contains
 
     do n = 1, lsize
        !--- temperature ---
-       if (tbotmax < 50.0_r8) Sa_tbot(n) = Sa_tbot(n) + tkFrz
+       if (tbotmax < 50.0_cdeps_real_kind) Sa_tbot(n) = Sa_tbot(n) + tkFrz
        ! Limit very cold forcing to 180K
-       Sa_tbot(n) = max(180._r8, Sa_tbot(n))
+       Sa_tbot(n) = max(180._cdeps_real_kind, Sa_tbot(n))
     end do
 
   end subroutine datm_datamode_gefs_advance
