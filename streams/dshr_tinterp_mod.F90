@@ -6,12 +6,12 @@ module dshr_tInterp_mod
 
   use ESMF             , only : ESMF_Time, ESMF_TimeInterval, ESMF_TimeIntervalGet
   use ESMF             , only : ESMF_SUCCESS, operator(<), operator(-), operator(>), operator(==)
-  use shr_kind_mod     , only : i8=>shr_kind_i8, r8=>shr_kind_r8, cs=>shr_kind_cs, cl=>shr_kind_cl, shr_kind_in
+
   use shr_sys_mod      , only : shr_sys_abort
   use shr_cal_mod      , only : shr_cal_timeSet, shr_cal_advDateInt, shr_cal_date2julian
   use shr_orb_mod      , only : shr_orb_cosz, shr_orb_decl, SHR_ORB_UNDEF_REAL
   use shr_const_mod    , only : SHR_CONST_PI
-  use dshr_methods_mod , only : chkerr
+  use dshr_methods_mod , only : chkerr, i8, cdeps_real_kind, cs, cl
 
   implicit none
   private ! except
@@ -22,10 +22,10 @@ module dshr_tInterp_mod
 
   integer :: debug = 0
 
-  real(R8)     ,parameter :: deg2rad = SHR_CONST_PI/180.0_R8
-  real(r8)     ,parameter :: c0 = 0.0_r8
-  real(r8)     ,parameter :: c1 = 1.0_r8
-  real(r8)     ,parameter :: eps = 1.0E-12_r8
+  real(cdeps_real_kind)     ,parameter :: deg2rad = SHR_CONST_PI/180.0_cdeps_real_kind
+  real(cdeps_real_kind)     ,parameter :: c0 = 0.0_cdeps_real_kind
+  real(cdeps_real_kind)     ,parameter :: c1 = 1.0_cdeps_real_kind
+  real(cdeps_real_kind)     ,parameter :: eps = 1.0E-12_cdeps_real_kind
   character(*) ,parameter :: u_FILE_u = &
        __FILE__
 
@@ -49,8 +49,8 @@ contains
     integer      ,intent(in)           :: D1,S1   ! LB date & sec (20010115,3600)
     integer      ,intent(in)           :: D2,S2   ! UB date & sec
     integer      ,intent(in)           :: Din,Sin ! desired/model date & sec
-    real(r8)     ,intent(out)          :: f1      ! wgt for 1
-    real(r8)     ,intent(out)          :: f2      ! wgt for 2
+    real(cdeps_real_kind)     ,intent(out)          :: f1      ! wgt for 1
+    real(cdeps_real_kind)     ,intent(out)          :: f2      ! wgt for 2
     character(*) ,intent(in)           :: calendar!calendar type
     integer      ,intent(in)           :: logunit
     character(*) ,intent(in) ,optional :: algo    ! algorithm
@@ -124,7 +124,7 @@ contains
           call shr_sys_abort(subName//' illegal itimes ')
        endif
        if (itime2 == itime1) then
-          f1 = 0.5_r8
+          f1 = 0.5_cdeps_real_kind
        else
           timeint = itime2 - itimein
           call ESMF_TimeIntervalGet(timeint, StartTimeIn=itimein, s_i8=snum, rc=rc)
@@ -132,7 +132,7 @@ contains
           timeint = itime2 - itime1
           call ESMF_TimeIntervalGet(timeint, StartTimeIn=itime1, s_i8=sden, rc=rc)
           if (ChkErr(rc,__LINE__,u_FILE_u)) return
-          f1 = real(snum,r8)/real(sden,r8)
+          f1 = real(snum,cdeps_real_kind)/real(sden,cdeps_real_kind)
        endif
     else
        if (debug > 0) write(logunit,F00) 'ERROR: illegal lalgo option: ',trim(lalgo)
@@ -170,15 +170,15 @@ contains
     !---------------------------------------------------------------
 
     ! input/output variables
-    real(r8)     ,intent(out)   :: tavCosz(:) ! t-avg of cosz over [LB,UB]
-    real(r8)     ,intent(in)    :: lat(:)    ! latitudes in degrees
-    real(r8)     ,intent(in)    :: lon(:)    ! longitudes in degrees
+    real(cdeps_real_kind)     ,intent(out)   :: tavCosz(:) ! t-avg of cosz over [LB,UB]
+    real(cdeps_real_kind)     ,intent(in)    :: lat(:)    ! latitudes in degrees
+    real(cdeps_real_kind)     ,intent(in)    :: lon(:)    ! longitudes in degrees
     integer      ,intent(in)    :: ymd1,tod1  ! date of lb
     integer      ,intent(in)    :: ymd2,tod2  ! date of ub
-    real(r8)     ,intent(in)    :: eccen      ! orb param
-    real(r8)     ,intent(in)    :: mvelpp     ! orb param
-    real(r8)     ,intent(in)    :: lambm0     ! orb param
-    real(r8)     ,intent(in)    :: obliqr     ! orb param
+    real(cdeps_real_kind)     ,intent(in)    :: eccen      ! orb param
+    real(cdeps_real_kind)     ,intent(in)    :: mvelpp     ! orb param
+    real(cdeps_real_kind)     ,intent(in)    :: lambm0     ! orb param
+    real(cdeps_real_kind)     ,intent(in)    :: obliqr     ! orb param
     integer      ,intent(in)    :: modeldt    ! model time step in secs
     character(*) ,intent(in)    :: calendar   ! calendar type
     logical      , intent(in)   :: isroot
@@ -186,7 +186,7 @@ contains
     integer      ,intent(out)   :: rc         ! error status
 
     ! local variables
-    real(R8), allocatable   :: cosz(:)           ! local cos of the zenith angle
+    real(cdeps_real_kind), allocatable   :: cosz(:)           ! local cos of the zenith angle
     integer                 :: lsize             ! size of local data
     type(ESMF_Time)         :: reday1, reday2    ! LB, UB time
     type(ESMF_TimeInterval) :: timeint           ! time interval
@@ -226,11 +226,11 @@ contains
     ldt8 = modeldt
     if (mod(dtsec,ldt8) /= 0) then
        ldt8 = (dtsec)/((dtsec)/ldt8+1)
-       ldt = int(ldt8, shr_kind_in)
+       ldt = int(ldt8, kind(1))
     endif
 
     ! compute time average
-    tavCosz = 0.0_r8 ! initialize partial sum
+    tavCosz = 0.0_cdeps_real_kind ! initialize partial sum
     n       = 0      ! dt weighted average in t-avg
     reday   = reday1 ! mid [LB,UB] interval t-step starts at LB
     ymd     = ymd1
@@ -249,7 +249,7 @@ contains
        !--- get next cosz value for t-avg ---
        call shr_tInterp_getCosz(cosz,lon,lat,ymd,tod,eccen,mvelpp,lambm0,obliqr,calendar,isroot,logunit)
        n = n + ldt
-       tavCosz = tavCosz + cosz*real(ldt,r8)  ! add to partial sum
+       tavCosz = tavCosz + cosz*real(ldt,cdeps_real_kind)  ! add to partial sum
 
        !--- advance to next time in [LB,UB] ---
        ymd0 = ymd
@@ -259,7 +259,7 @@ contains
        call shr_cal_timeSet(reday,ymd,tod,calendar)
 
     end do
-    tavCosz = tavCosz/real(n,r8) ! form t-avg
+    tavCosz = tavCosz/real(n,cdeps_real_kind) ! form t-avg
 
     deallocate(cosz)
 
@@ -274,14 +274,14 @@ contains
     !---------------------------------------------------------------
 
     ! input/output parameters:
-    real(r8)     , intent(out)   :: cosz(:)    ! cos(zenith angle)
-    real(r8)     , intent(in)    :: lat(:)     ! latitude in degrees
-    real(r8)     , intent(in)    :: lon(:)     ! longitude in degrees
+    real(cdeps_real_kind)     , intent(out)   :: cosz(:)    ! cos(zenith angle)
+    real(cdeps_real_kind)     , intent(in)    :: lat(:)     ! latitude in degrees
+    real(cdeps_real_kind)     , intent(in)    :: lon(:)     ! longitude in degrees
     integer      , intent(in)    :: ymd,tod    ! date of interest
-    real(r8)     , intent(in)    :: eccen      ! orb param
-    real(r8)     , intent(in)    :: mvelpp     ! orb param
-    real(r8)     , intent(in)    :: lambm0     ! orb param
-    real(r8)     , intent(in)    :: obliqr     ! orb param
+    real(cdeps_real_kind)     , intent(in)    :: eccen      ! orb param
+    real(cdeps_real_kind)     , intent(in)    :: mvelpp     ! orb param
+    real(cdeps_real_kind)     , intent(in)    :: lambm0     ! orb param
+    real(cdeps_real_kind)     , intent(in)    :: obliqr     ! orb param
     character(*) , intent(in)    :: calendar   ! calendar type
     logical      , intent(in)    :: isroot
     integer      , intent(in)    :: logunit
@@ -289,10 +289,10 @@ contains
     ! local variables
     integer                 :: n
     integer                 :: lsize
-    real(r8)                :: lonr, latr           ! lontitude and latitude in radians
-    real(r8)                :: calday               ! julian days
-    real(r8)                :: declin,eccf          ! orb params
-    real(r8)     ,parameter :: solZenMin = 0.001_r8 ! min solar zenith angle
+    real(cdeps_real_kind)                :: lonr, latr           ! lontitude and latitude in radians
+    real(cdeps_real_kind)                :: calday               ! julian days
+    real(cdeps_real_kind)                :: declin,eccf          ! orb params
+    real(cdeps_real_kind)     ,parameter :: solZenMin = 0.001_cdeps_real_kind ! min solar zenith angle
     character(*) ,parameter :: subName = "(shr_tInterp_getCosz) "
     !---------------------------------------------------------------
 

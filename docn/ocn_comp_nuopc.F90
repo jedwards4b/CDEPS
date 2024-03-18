@@ -23,11 +23,11 @@ module cdeps_docn_comp
   use NUOPC_Model      , only : model_label_SetRunClock => label_SetRunClock
   use NUOPC_Model      , only : model_label_Finalize    => label_Finalize
   use NUOPC_Model      , only : NUOPC_ModelGet, SetVM
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod      , only : shr_sys_abort
   use shr_cal_mod      , only : shr_cal_ymd2date
   use shr_log_mod     , only : shr_log_setLogUnit
   use dshr_methods_mod , only : dshr_state_diagnose, chkerr, memcheck
+  use dshr_methods_mod, only : cdeps_real_kind, i8, cl, cs
   use dshr_strdata_mod , only : shr_strdata_type, shr_strdata_advance, shr_strdata_init_from_config
   use dshr_mod         , only : dshr_model_initphase, dshr_init, dshr_mesh_init
   use dshr_mod         , only : dshr_state_setscalar, dshr_set_runclock, dshr_check_restart_alarm
@@ -97,7 +97,7 @@ module cdeps_docn_comp
   character(CL)                :: datamode = nullstr                  ! flags physics options wrt input data
   character(CL)                :: model_meshfile = nullstr            ! full pathname to model meshfile
   character(CL)                :: model_maskfile = nullstr            ! full pathname to obtain mask from
-  real(R8)                     :: sst_constant_value                  ! sst constant value
+  real(cdeps_real_kind)                     :: sst_constant_value                  ! sst constant value
   integer                      :: aquap_option                        ! if aqua-planet mode, option to use
   character(CL)                :: restfilm = nullstr                  ! model restart file namelist
   integer                      :: nx_global
@@ -111,7 +111,7 @@ module cdeps_docn_comp
   type(dfield_type)  , pointer :: dfields    => null()
 
   ! model mask and model fraction
-  real(r8), pointer            :: model_frac(:) => null()
+  real(cdeps_real_kind), pointer            :: model_frac(:) => null()
   integer , pointer            :: model_mask(:) => null()
   logical                      :: valid_ocn = .true. ! used for single column logic
 
@@ -191,7 +191,7 @@ contains
     integer           :: ierr               ! error code
     character(len=CL) :: import_data_fields ! colon deliminted strings of input data fields
     integer           :: bcasttmp(4)
-    real(r8)          :: rtmp(1)
+    real(cdeps_real_kind)          :: rtmp(1)
     type(ESMF_VM)     :: vm
     character(len=*),parameter :: subname=trim(module_name)//':(InitializeAdvertise) '
     character(*)    ,parameter :: F00 = "('(" // trim(module_name) // ") ',8a)"
@@ -351,10 +351,10 @@ contains
     type(ESMF_Field)       :: lfield
     character(CL) ,pointer :: lfieldnamelist(:) => null()
     integer                :: fieldcount
-    real(r8), pointer      :: fldptr(:)
+    real(cdeps_real_kind), pointer      :: fldptr(:)
     integer                :: n
     integer                :: imask
-    real(r8)               :: rmask
+    real(cdeps_real_kind)               :: rmask
     character(CL)          :: cvalue
     character(len=*), parameter :: subname=trim(module_name)//':(InitializeRealize) '
     !-------------------------------------------------------------------------------
@@ -370,7 +370,7 @@ contains
        write(cvalue,*) imask
        call NUOPC_CompAttributeSet(gcomp, name='scol_ocnmask', value=cvalue, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       rmask = 1._r8
+       rmask = 1._cdeps_real_kind
        write(cvalue,*) rmask
        call NUOPC_CompAttributeSet(gcomp, name='scol_ocnfrac', value=cvalue, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -415,7 +415,7 @@ contains
              if (chkerr(rc,__LINE__,u_FILE_u)) return
              call ESMF_FieldGet(lfield, farrayPtr=fldptr, rc=rc)
              if (ChkErr(rc,__LINE__,u_FILE_u)) return
-             fldptr(:) = 0._r8
+             fldptr(:) = 0._cdeps_real_kind
           end if
        enddo
        deallocate(lfieldnamelist)

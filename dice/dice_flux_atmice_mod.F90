@@ -1,7 +1,7 @@
 module dice_flux_atmice_mod
 
-  use shr_kind_mod, only : r8=>shr_kind_r8, cxx=>shr_kind_cxx, cl=>shr_kind_cl, cs=>shr_kind_cs
-  ! shared constants
+    ! shared constants
+  use dshr_methods_mod, only : cdeps_real_kind, cxx, cl, cs
   use shr_const_mod, only : loc_zvir => shr_const_zvir, loc_cpdair => shr_const_cpdair
   use shr_const_mod, only : loc_cpvir => shr_const_cpvir, loc_karman => shr_const_karman
   use shr_const_mod, only : loc_g => shr_const_g, loc_latvap => shr_const_latvap
@@ -38,79 +38,79 @@ contains
 
     !--- input arguments --------------------------------
     integer    ,intent(in)  :: mask (:)    ! 0 <=> cell NOT in model domain
-    real(R8)   ,intent(in)  :: zbot (:)    ! atm level height  (m)
-    real(R8)   ,intent(in)  :: ubot (:)    ! atm u wind     (m/s)
-    real(R8)   ,intent(in)  :: vbot (:)    ! atm v wind     (m/s)
-    real(R8)   ,intent(in)  :: thbot(:)    ! atm potential T   (K)
-    real(R8)   ,intent(in)  :: qbot (:)    ! atm specific humidity (kg/kg)
-    real(R8)   ,intent(in)  :: rbot (:)    ! atm air density   (kg/m^3)
-    real(R8)   ,intent(in)  :: tbot (:)    ! atm T       (K)
-    real(R8)   ,intent(in)  :: ts   (:)    ! surface temperature
+    real(cdeps_real_kind)   ,intent(in)  :: zbot (:)    ! atm level height  (m)
+    real(cdeps_real_kind)   ,intent(in)  :: ubot (:)    ! atm u wind     (m/s)
+    real(cdeps_real_kind)   ,intent(in)  :: vbot (:)    ! atm v wind     (m/s)
+    real(cdeps_real_kind)   ,intent(in)  :: thbot(:)    ! atm potential T   (K)
+    real(cdeps_real_kind)   ,intent(in)  :: qbot (:)    ! atm specific humidity (kg/kg)
+    real(cdeps_real_kind)   ,intent(in)  :: rbot (:)    ! atm air density   (kg/m^3)
+    real(cdeps_real_kind)   ,intent(in)  :: tbot (:)    ! atm T       (K)
+    real(cdeps_real_kind)   ,intent(in)  :: ts   (:)    ! surface temperature
     integer    ,intent(in)  :: logunit     ! logging unit number
 
     !--- output arguments -------------------------------
-    real(R8)   ,intent(out) :: sen  (:)    ! sensible      heat flux  (W/m^2)
-    real(R8)   ,intent(out) :: lat  (:)    ! latent        heat flux  (W/m^2)
-    real(R8)   ,intent(out) :: lwup (:)    ! long-wave upward heat flux  (W/m^2)
-    real(R8)   ,intent(out) :: evap (:)    ! evaporative water flux ((kg/s)/m^2)
-    real(R8)   ,intent(out) :: taux (:)    ! x surface stress (N)
-    real(R8)   ,intent(out) :: tauy (:)    ! y surface stress (N)
-    real(R8)   ,intent(out) :: tref (:)    ! 2m reference height temperature
-    real(R8)   ,intent(out) :: qref (:)    ! 2m reference height humidity
+    real(cdeps_real_kind)   ,intent(out) :: sen  (:)    ! sensible      heat flux  (W/m^2)
+    real(cdeps_real_kind)   ,intent(out) :: lat  (:)    ! latent        heat flux  (W/m^2)
+    real(cdeps_real_kind)   ,intent(out) :: lwup (:)    ! long-wave upward heat flux  (W/m^2)
+    real(cdeps_real_kind)   ,intent(out) :: evap (:)    ! evaporative water flux ((kg/s)/m^2)
+    real(cdeps_real_kind)   ,intent(out) :: taux (:)    ! x surface stress (N)
+    real(cdeps_real_kind)   ,intent(out) :: tauy (:)    ! y surface stress (N)
+    real(cdeps_real_kind)   ,intent(out) :: tref (:)    ! 2m reference height temperature
+    real(cdeps_real_kind)   ,intent(out) :: qref (:)    ! 2m reference height humidity
 
     !--- local constants --------------------------------
-    real(R8),parameter :: umin   =  1.0_R8            ! minimum wind speed (m/s)
-    real(R8),parameter :: zref   = 10.0_R8            ! ref height           ~ m
-    real(R8),parameter :: ztref  =  2.0_R8            ! ref height for air T ~ m
-    real(R8),parameter :: zzsice = 0.0005_R8          ! ice surface roughness
+    real(cdeps_real_kind),parameter :: umin   =  1.0_cdeps_real_kind            ! minimum wind speed (m/s)
+    real(cdeps_real_kind),parameter :: zref   = 10.0_cdeps_real_kind            ! ref height           ~ m
+    real(cdeps_real_kind),parameter :: ztref  =  2.0_cdeps_real_kind            ! ref height for air T ~ m
+    real(cdeps_real_kind),parameter :: zzsice = 0.0005_cdeps_real_kind          ! ice surface roughness
 
     !--- local variables --------------------------------
     integer     :: lsize  ! array dimensions
     integer     :: n      ! array indicies
-    real(R8)    :: vmag   ! surface wind magnitude   (m/s)
-    real(R8)    :: thvbot ! virtual temperature      (K)
-    real(R8)    :: ssq    ! sea surface humidity     (kg/kg)
-    real(R8)    :: dssqdt ! derivative of ssq wrt Ts (kg/kg/K)
-    real(R8)    :: delt   ! potential T difference   (K)
-    real(R8)    :: delq   ! humidity difference      (kg/kg)
-    real(R8)    :: stable ! stability factor
-    real(R8)    :: rdn    ! sqrt of neutral exchange coefficient (momentum)
-    real(R8)    :: rhn    ! sqrt of neutral exchange coefficient (heat)
-    real(R8)    :: ren    ! sqrt of neutral exchange coefficient (water)
-    real(R8)    :: rd     ! sqrt of exchange coefficient (momentum)
-    real(R8)    :: rh     ! sqrt of exchange coefficient (heat)
-    real(R8)    :: re     ! sqrt of exchange coefficient (water)
-    real(R8)    :: ustar  ! ustar
-    real(R8)    :: qstar  ! qstar
-    real(R8)    :: tstar  ! tstar
-    real(R8)    :: hol    ! H (at zbot) over L
-    real(R8)    :: xsq    ! temporary variable
-    real(R8)    :: xqq    ! temporary variable
-    real(R8)    :: psimh  ! stability function at zbot (momentum)
-    real(R8)    :: psixh  ! stability function at zbot (heat and water)
-    real(R8)    :: alz    ! ln(zbot/z10)
-    real(R8)    :: ltheat ! latent heat for surface
-    real(R8)    :: tau    ! stress at zbot
-    real(R8)    :: cp     ! specific heat of moist air
+    real(cdeps_real_kind)    :: vmag   ! surface wind magnitude   (m/s)
+    real(cdeps_real_kind)    :: thvbot ! virtual temperature      (K)
+    real(cdeps_real_kind)    :: ssq    ! sea surface humidity     (kg/kg)
+    real(cdeps_real_kind)    :: dssqdt ! derivative of ssq wrt Ts (kg/kg/K)
+    real(cdeps_real_kind)    :: delt   ! potential T difference   (K)
+    real(cdeps_real_kind)    :: delq   ! humidity difference      (kg/kg)
+    real(cdeps_real_kind)    :: stable ! stability factor
+    real(cdeps_real_kind)    :: rdn    ! sqrt of neutral exchange coefficient (momentum)
+    real(cdeps_real_kind)    :: rhn    ! sqrt of neutral exchange coefficient (heat)
+    real(cdeps_real_kind)    :: ren    ! sqrt of neutral exchange coefficient (water)
+    real(cdeps_real_kind)    :: rd     ! sqrt of exchange coefficient (momentum)
+    real(cdeps_real_kind)    :: rh     ! sqrt of exchange coefficient (heat)
+    real(cdeps_real_kind)    :: re     ! sqrt of exchange coefficient (water)
+    real(cdeps_real_kind)    :: ustar  ! ustar
+    real(cdeps_real_kind)    :: qstar  ! qstar
+    real(cdeps_real_kind)    :: tstar  ! tstar
+    real(cdeps_real_kind)    :: hol    ! H (at zbot) over L
+    real(cdeps_real_kind)    :: xsq    ! temporary variable
+    real(cdeps_real_kind)    :: xqq    ! temporary variable
+    real(cdeps_real_kind)    :: psimh  ! stability function at zbot (momentum)
+    real(cdeps_real_kind)    :: psixh  ! stability function at zbot (heat and water)
+    real(cdeps_real_kind)    :: alz    ! ln(zbot/z10)
+    real(cdeps_real_kind)    :: ltheat ! latent heat for surface
+    real(cdeps_real_kind)    :: tau    ! stress at zbot
+    real(cdeps_real_kind)    :: cp     ! specific heat of moist air
 
-    real(R8)    :: bn     ! exchange coef funct for interpolation
-    real(R8)    :: bh     ! exchange coef funct for interpolation
-    real(R8)    :: fac    ! interpolation factor
-    real(R8)    :: ln0    ! log factor for interpolation
-    real(R8)    :: ln3    ! log factor for interpolation
+    real(cdeps_real_kind)    :: bn     ! exchange coef funct for interpolation
+    real(cdeps_real_kind)    :: bh     ! exchange coef funct for interpolation
+    real(cdeps_real_kind)    :: fac    ! interpolation factor
+    real(cdeps_real_kind)    :: ln0    ! log factor for interpolation
+    real(cdeps_real_kind)    :: ln3    ! log factor for interpolation
 
     !--- local functions --------------------------------
-    real(R8)   :: Tk      ! temperature (K)
-    real(R8)   :: qsat    ! the saturation humidity of air (kg/m^3)
-    real(R8)   :: dqsatdt ! derivative of qsat wrt surface temperature
-    real(R8)   :: xd      ! dummy argument
-    real(R8)   :: psimhu  ! unstable part of psimh
-    real(R8)   :: psixhu  ! unstable part of psimx
+    real(cdeps_real_kind)   :: Tk      ! temperature (K)
+    real(cdeps_real_kind)   :: qsat    ! the saturation humidity of air (kg/m^3)
+    real(cdeps_real_kind)   :: dqsatdt ! derivative of qsat wrt surface temperature
+    real(cdeps_real_kind)   :: xd      ! dummy argument
+    real(cdeps_real_kind)   :: psimhu  ! unstable part of psimh
+    real(cdeps_real_kind)   :: psixhu  ! unstable part of psimx
 
-    qsat(Tk)    = 627572.4_R8 / exp(5107.4_R8/Tk)
-    dqsatdt(Tk) = (5107.4_R8 / Tk**2) * 627572.4_R8 / exp(5107.4_R8/Tk)
-    psimhu(xd)  = log((1.0_R8+xd*(2.0_R8+xd))*(1.0_R8+xd*xd)/8.0_R8) - 2.0_R8*atan(xd) + 1.571_R8
-    psixhu(xd)  =  2.0_R8 * log((1.0_R8 + xd*xd)/2.0_R8)
+    qsat(Tk)    = 627572.4_cdeps_real_kind / exp(5107.4_cdeps_real_kind/Tk)
+    dqsatdt(Tk) = (5107.4_cdeps_real_kind / Tk**2) * 627572.4_cdeps_real_kind / exp(5107.4_cdeps_real_kind/Tk)
+    psimhu(xd)  = log((1.0_cdeps_real_kind+xd*(2.0_cdeps_real_kind+xd))*(1.0_cdeps_real_kind+xd*xd)/8.0_cdeps_real_kind) - 2.0_cdeps_real_kind*atan(xd) + 1.571_cdeps_real_kind
+    psixhu(xd)  =  2.0_cdeps_real_kind * log((1.0_cdeps_real_kind + xd*xd)/2.0_cdeps_real_kind)
 
     !--- formats ----------------------------------------
     character(*),parameter ::    F01 = "('(dice_flux_atmIce) ',a, i7,2x,d21.14)"
@@ -133,13 +133,13 @@ contains
        else
           !--- define some needed variables ---
           vmag   = max(umin, sqrt(ubot(n)**2+vbot(n)**2))
-          thvbot = thbot(n)*(1.0_R8 + loc_zvir * qbot(n)) ! virtual pot temp (K)
+          thvbot = thbot(n)*(1.0_cdeps_real_kind + loc_zvir * qbot(n)) ! virtual pot temp (K)
           ssq   =  qsat  (ts(n)) / rbot(n)           ! sea surf hum (kg/kg)
           dssqdt = dqsatdt(ts(n)) / rbot(n)           ! deriv of ssq wrt Ts
           delt   = thbot(n) - ts(n)                   ! pot temp diff (K)
           delq   = qbot(n) - ssq                        ! spec hum dif (kg/kg)
           alz    = log(zbot(n)/zref)
-          cp     = loc_cpdair*(1.0_R8 + loc_cpvir*ssq)
+          cp     = loc_cpdair*(1.0_cdeps_real_kind + loc_cpvir*ssq)
           ltheat = loc_latvap + loc_latice
 
           !----------------------------------------------------------
@@ -158,18 +158,18 @@ contains
 
           !--- compute stability & evaluate all stability functions ---
           hol    = loc_karman * loc_g * zbot(n) &
-               &     * (tstar/thvbot+qstar/(1.0_R8/loc_zvir+qbot(n))) / ustar**2
-          hol    = sign( min(abs(hol),10.0_R8), hol )
-          stable = 0.5_R8 + sign(0.5_R8 , hol)
-          xsq    = max(sqrt(abs(1.0_R8 - 16.0_R8*hol)) , 1.0_R8)
+               &     * (tstar/thvbot+qstar/(1.0_cdeps_real_kind/loc_zvir+qbot(n))) / ustar**2
+          hol    = sign( min(abs(hol),10.0_cdeps_real_kind), hol )
+          stable = 0.5_cdeps_real_kind + sign(0.5_cdeps_real_kind , hol)
+          xsq    = max(sqrt(abs(1.0_cdeps_real_kind - 16.0_cdeps_real_kind*hol)) , 1.0_cdeps_real_kind)
           xqq    = sqrt(xsq)
-          psimh  = -5.0_R8*hol*stable + (1.0_R8-stable)*psimhu(xqq)
-          psixh  = -5.0_R8*hol*stable + (1.0_R8-stable)*psixhu(xqq)
+          psimh  = -5.0_cdeps_real_kind*hol*stable + (1.0_cdeps_real_kind-stable)*psimhu(xqq)
+          psixh  = -5.0_cdeps_real_kind*hol*stable + (1.0_cdeps_real_kind-stable)*psixhu(xqq)
 
           !--- shift all coeffs to measurement height and stability ---
-          rd = rdn / (1.0_R8+rdn/loc_karman*(alz-psimh))
-          rh = rhn / (1.0_R8+rhn/loc_karman*(alz-psixh))
-          re = ren / (1.0_R8+ren/loc_karman*(alz-psixh))
+          rd = rdn / (1.0_cdeps_real_kind+rdn/loc_karman*(alz-psimh))
+          rh = rhn / (1.0_cdeps_real_kind+rhn/loc_karman*(alz-psixh))
+          re = ren / (1.0_cdeps_real_kind+ren/loc_karman*(alz-psixh))
 
           !--- update ustar, tstar, qstar w/ updated, shifted coeffs --
           ustar = rd * vmag
@@ -182,18 +182,18 @@ contains
 
           !--- compute stability & evaluate all stability functions ---
           hol    = loc_karman * loc_g * zbot(n) &
-               &      * (tstar/thvbot+qstar/(1.0_R8/loc_zvir+qbot(n))) / ustar**2
-          hol    = sign( min(abs(hol),10.0_R8), hol )
-          stable = 0.5_R8 + sign(0.5_R8 , hol)
-          xsq    = max(sqrt(abs(1.0_R8 - 16.0_R8*hol)) , 1.0_R8)
+               &      * (tstar/thvbot+qstar/(1.0_cdeps_real_kind/loc_zvir+qbot(n))) / ustar**2
+          hol    = sign( min(abs(hol),10.0_cdeps_real_kind), hol )
+          stable = 0.5_cdeps_real_kind + sign(0.5_cdeps_real_kind , hol)
+          xsq    = max(sqrt(abs(1.0_cdeps_real_kind - 16.0_cdeps_real_kind*hol)) , 1.0_cdeps_real_kind)
           xqq    = sqrt(xsq)
-          psimh  = -5.0_R8*hol*stable + (1.0_R8-stable)*psimhu(xqq)
-          psixh  = -5.0_R8*hol*stable + (1.0_R8-stable)*psixhu(xqq)
+          psimh  = -5.0_cdeps_real_kind*hol*stable + (1.0_cdeps_real_kind-stable)*psimhu(xqq)
+          psixh  = -5.0_cdeps_real_kind*hol*stable + (1.0_cdeps_real_kind-stable)*psixhu(xqq)
 
           !--- shift all coeffs to measurement height and stability ---
-          rd = rdn / (1.0_R8+rdn/loc_karman*(alz-psimh))
-          rh = rhn / (1.0_R8+rhn/loc_karman*(alz-psixh))
-          re = ren / (1.0_R8+ren/loc_karman*(alz-psixh))
+          rd = rdn / (1.0_cdeps_real_kind+rdn/loc_karman*(alz-psimh))
+          rh = rhn / (1.0_cdeps_real_kind+rhn/loc_karman*(alz-psixh))
+          re = ren / (1.0_cdeps_real_kind+ren/loc_karman*(alz-psixh))
 
           !--- update ustar, tstar, qstar w/ updated, shifted coeffs --
           ustar = rd * vmag
@@ -229,11 +229,11 @@ contains
           bh = loc_karman/rh
 
           !--- Interpolation factor for stable and unstable cases
-          ln0 = log(1.0_R8 + (ztref/zbot(n))*(exp(bn) - 1.0_R8))
-          ln3 = log(1.0_R8 + (ztref/zbot(n))*(exp(bn - bh) - 1.0_R8))
+          ln0 = log(1.0_cdeps_real_kind + (ztref/zbot(n))*(exp(bn) - 1.0_cdeps_real_kind))
+          ln3 = log(1.0_cdeps_real_kind + (ztref/zbot(n))*(exp(bn - bh) - 1.0_cdeps_real_kind))
           fac = (ln0 - ztref/zbot(n)*(bn - bh))/bh * stable &
-               &   + (ln0 - ln3)/bh * (1.0_R8-stable)
-          fac = min(max(fac,0.0_R8),1.0_R8)
+               &   + (ln0 - ln3)/bh * (1.0_cdeps_real_kind-stable)
+          fac = min(max(fac,0.0_cdeps_real_kind),1.0_cdeps_real_kind)
 
           !--- actual interpolation
           tref(n) = ts(n) + (tbot(n) - ts(n))*fac

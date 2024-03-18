@@ -24,7 +24,6 @@ module cdeps_dice_comp
   use NUOPC_Model          , only : model_label_SetRunClock => label_SetRunClock
   use NUOPC_Model          , only : model_label_Finalize    => label_Finalize
   use NUOPC_Model          , only : NUOPC_ModelGet, SetVM
-  use shr_kind_mod         , only : r8=>shr_kind_r8, cxx=>shr_kind_cxx, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_const_mod        , only : shr_const_pi
   use shr_log_mod         , only : shr_log_setLogUnit
   use shr_sys_mod          , only : shr_sys_abort
@@ -32,6 +31,7 @@ module cdeps_dice_comp
   use dshr_mod             , only : dshr_model_initphase, dshr_init, dshr_mesh_init, dshr_check_restart_alarm
   use dshr_mod             , only : dshr_state_setscalar, dshr_set_runclock, dshr_log_clock_advance
   use dshr_methods_mod     , only : dshr_state_diagnose, chkerr, memcheck
+  use dshr_methods_mod     , only : cdeps_real_kind, cxx, cl, cs
   use dshr_strdata_mod     , only : shr_strdata_type, shr_strdata_init_from_config, shr_strdata_advance
   use dshr_dfield_mod      , only : dfield_type, dshr_dfield_add, dshr_dfield_copy
   use dshr_fldlist_mod     , only : fldlist_type, dshr_fldlist_add, dshr_fldlist_realize
@@ -78,10 +78,10 @@ module cdeps_dice_comp
   character(CL)                :: dataMode                            ! flags physics options wrt input data
   character(CL)                :: model_meshfile = nullstr            ! full pathname to model meshfile
   character(CL)                :: model_maskfile = nullstr            ! full pathname to obtain mask from
-  real(R8)                     :: flux_swpf                           ! short-wave penatration factor
-  real(R8)                     :: flux_Qmin                           ! bound on melt rate
+  real(cdeps_real_kind)                     :: flux_swpf                           ! short-wave penatration factor
+  real(cdeps_real_kind)                     :: flux_Qmin                           ! bound on melt rate
   logical                      :: flux_Qacc                           ! activates water accumulation/melt wrt Q
-  real(R8)                     :: flux_Qacc0                          ! initial water accumulation value
+  real(cdeps_real_kind)                     :: flux_Qacc0                          ! initial water accumulation value
   character(CL)                :: restfilm = nullstr                  ! model restart file namelist
   integer                      :: nx_global
   integer                      :: ny_global
@@ -93,13 +93,13 @@ module cdeps_dice_comp
   type(dfield_type)  , pointer :: dfields    => null()
 
   ! model mask and model fraction
-  real(r8), pointer            :: model_frac(:) => null()
+  real(cdeps_real_kind), pointer            :: model_frac(:) => null()
   integer , pointer            :: model_mask(:) => null()
   logical                      :: valid_ice = .true.                  ! used for single column logic (ocn mask > 0)
 
   ! constants
   logical                      :: flds_i2o_per_cat                    ! .true. if select per ice thickness
-  real(R8)                     :: dt                                  ! real model timestep
+  real(cdeps_real_kind)                     :: dt                                  ! real model timestep
 
   logical                      :: diagnose_data = .true.
   integer      , parameter     :: main_task=0                       ! task number of main task
@@ -174,7 +174,7 @@ contains
     integer           :: nu                 ! unit number
     integer           :: ierr               ! error code
     integer           :: bcasttmp(4)
-    real(r8)          :: rbcasttmp(3)
+    real(cdeps_real_kind)          :: rbcasttmp(3)
     type(ESMF_VM)     :: vm
     character(len=*),parameter  :: subname=trim(modName)//':(InitializeAdvertise) '
     character(*)    ,parameter :: F00 = "('(" // trim(modName) // ") ',8a)"
@@ -302,13 +302,13 @@ contains
     integer                     :: current_mon   ! model month
     integer                     :: current_day   ! model day
     integer                     :: current_tod   ! model sec into model date
-    real(R8)                    :: cosarg        ! for setting ice temp pattern
-    real(R8)                    :: jday, jday0   ! elapsed day counters
+    real(cdeps_real_kind)                    :: cosarg        ! for setting ice temp pattern
+    real(cdeps_real_kind)                    :: jday, jday0   ! elapsed day counters
     integer                     :: model_dt      ! integer model timestep
     type(ESMF_Field)            :: lfield
     character(CL) ,pointer      :: lfieldnamelist(:) => null()
     integer                     :: fieldcount
-    real(r8), pointer           :: fldptr(:)
+    real(cdeps_real_kind), pointer           :: fldptr(:)
     integer                     :: n
     character(len=*), parameter :: F00   = "('" // trim(modName) // ": ')',8a)"
     character(len=*), parameter :: subname=trim(modName)//':(InitializeRealize) '
@@ -341,7 +341,7 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! for single column, the target point might not be a point where the ice/ocn mask is > 0
-    if (size(model_frac) == 1 .and. model_frac(1) == 0._r8) then
+    if (size(model_frac) == 1 .and. model_frac(1) == 0._cdeps_real_kind) then
        valid_ice = .false.
        call ESMF_StateGet(exportState, itemCount=fieldCount, rc=rc)
        if (chkerr(rc,__LINE__,u_FILE_u)) return
@@ -354,7 +354,7 @@ contains
              if (chkerr(rc,__LINE__,u_FILE_u)) return
              call ESMF_FieldGet(lfield, farrayPtr=fldptr, rc=rc)
              if (ChkErr(rc,__LINE__,u_FILE_u)) return
-             fldptr(:) = 0._r8
+             fldptr(:) = 0._cdeps_real_kind
           end if
        enddo
        deallocate(lfieldnamelist)
@@ -374,12 +374,12 @@ contains
     ! Get model timestep
     call ESMF_TimeIntervalGet( timeStep, s=model_dt, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    dt = model_dt * 1.0_r8
+    dt = model_dt * 1.0_cdeps_real_kind
 
     ! Get cosarg
     call shr_cal_ymd2julian(0, current_mon, current_day, current_tod, jDay , sdat%model_calendar) ! julian day for model
     call shr_cal_ymd2julian(0, 9,           1,           0,           jDay0, sdat%model_calendar) ! julian day for Sept 1
-    cosArg = 2.0_R8*shr_const_pi*(jday - jday0)/365.0_R8
+    cosArg = 2.0_cdeps_real_kind*shr_const_pi*(jday - jday0)/365.0_cdeps_real_kind
 
     ! Run dice
     call dice_comp_run(importState, exportState, current_ymd, current_tod, cosarg, restart_write=.false., rc=rc)
@@ -405,8 +405,8 @@ contains
     type(ESMF_Clock)        :: clock
     type(ESMF_TimeInterval) :: timeStep
     type(ESMF_Time)         :: currTime, nextTime
-    real(R8)                :: cosarg        ! for setting ice temp pattern
-    real(R8)                :: jday, jday0   ! elapsed day counters
+    real(cdeps_real_kind)                :: cosarg        ! for setting ice temp pattern
+    real(cdeps_real_kind)                :: jday, jday0   ! elapsed day counters
     integer                 :: next_ymd      ! model date
     integer                 :: next_tod      ! model sec into model date
     integer                 :: yr            ! year
@@ -443,7 +443,7 @@ contains
     ! Get cosarg
     call shr_cal_ymd2julian(0, mon, day, next_tod, jDay , sdat%model_calendar) ! julian day for model
     call shr_cal_ymd2julian(0, 9,   1,   0,        jDay0, sdat%model_calendar) ! julian day for Sept 1
-    cosArg = 2.0_R8*shr_const_pi*(jday - jday0)/365.0_R8
+    cosArg = 2.0_cdeps_real_kind*shr_const_pi*(jday - jday0)/365.0_cdeps_real_kind
 
     ! Determine if will write restarts
     restart_write = dshr_check_restart_alarm(clock, rc=rc)
@@ -469,7 +469,7 @@ contains
     type(ESMF_State) , intent(inout) :: importState
     integer          , intent(in)    :: target_ymd ! model date
     integer          , intent(in)    :: target_tod ! model sec into model date
-    real(R8)         , intent(in)    :: cosarg     ! for setting ice temp pattern
+    real(cdeps_real_kind)         , intent(in)    :: cosarg     ! for setting ice temp pattern
     logical          , intent(in)    :: restart_write
     integer          , intent(out)   :: rc
 

@@ -4,12 +4,12 @@ module dice_datamode_ssmi_mod
   use ESMF                 , only : ESMF_SUCCESS, ESMF_LOGMSG_INFO, ESMF_DistGrid
   use ESMF                 , only : ESMF_ArrayCreate, ESMF_ArrayDestroy
   use NUOPC                , only : NUOPC_Advertise
-  use shr_kind_mod         , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod          , only : shr_sys_abort
   use shr_const_mod        , only : shr_const_pi, shr_const_spval, shr_const_tkfrz, shr_const_latice
   use shr_frz_mod          , only : shr_frz_freezetemp
   use dshr_strdata_mod     , only : shr_strdata_get_stream_pointer, shr_strdata_type
   use dshr_methods_mod     , only : dshr_state_getfldptr, dshr_fldbun_getfldptr, dshr_fldbun_regrid, chkerr
+  use dshr_methods_mod     , only : cdeps_real_kind, i8, cs, cl
   use dshr_mod             , only : dshr_restart_read, dshr_restart_write
   use dice_flux_atmice_mod , only : dice_flux_atmice
   use dshr_fldlist_mod     , only : fldlist_type, dshr_fldlist_add
@@ -24,82 +24,82 @@ module dice_datamode_ssmi_mod
   public  :: dice_datamode_ssmi_restart_read
 
   ! restart fields
-  real(r8), pointer, public :: water(:) => null()
+  real(cdeps_real_kind), pointer, public :: water(:) => null()
 
   ! internal fields
-  real(r8), pointer :: yc(:)      => null() ! mesh lats (degrees)
+  real(cdeps_real_kind), pointer :: yc(:)      => null() ! mesh lats (degrees)
   integer , pointer :: imask(:)   => null()
-  !real(r8), pointer:: ifrac0(:)  => null()
+  !real(cdeps_real_kind), pointer:: ifrac0(:)  => null()
 
   ! export fields
-  real(r8), pointer ::  Si_imask(:)      => null()
-  real(r8), pointer ::  Si_ifrac(:)      => null()
-  real(r8), pointer ::  Si_t(:)          => null()
-  real(r8), pointer ::  Si_tref(:)       => null()
-  real(r8), pointer ::  Si_qref(:)       => null()
-  real(r8), pointer ::  Si_avsdr(:)      => null()
-  real(r8), pointer ::  Si_anidr(:)      => null()
-  real(r8), pointer ::  Si_avsdf(:)      => null()
-  real(r8), pointer ::  Si_anidf(:)      => null()
-  real(r8), pointer ::  Faii_swnet(:)    => null()
-  real(r8), pointer ::  Faii_sen(:)      => null()
-  real(r8), pointer ::  Faii_lat(:)      => null()
-  real(r8), pointer ::  Faii_lwup(:)     => null()
-  real(r8), pointer ::  Faii_evap(:)     => null()
-  real(r8), pointer ::  Faii_taux(:)     => null()
-  real(r8), pointer ::  Faii_tauy(:)     => null()
-  real(r8), pointer ::  Fioi_melth(:)    => null()
-  real(r8), pointer ::  Fioi_meltw(:)    => null()
-  real(r8), pointer ::  Fioi_swpen(:)    => null()
-  real(r8), pointer ::  Fioi_taux(:)     => null()
-  real(r8), pointer ::  Fioi_tauy(:)     => null()
-  real(r8), pointer ::  Fioi_salt(:)     => null()
-  real(r8), pointer ::  Fioi_bcpho(:)    => null()
-  real(r8), pointer ::  Fioi_bcphi(:)    => null()
-  real(r8), pointer ::  Fioi_flxdst(:)   => null()
-  real(r8), pointer ::  Si_ifrac_n(:,:)  => null()
-  real(r8), pointer ::  Fioi_swpen_ifrac_n(:,:) => null()
+  real(cdeps_real_kind), pointer ::  Si_imask(:)      => null()
+  real(cdeps_real_kind), pointer ::  Si_ifrac(:)      => null()
+  real(cdeps_real_kind), pointer ::  Si_t(:)          => null()
+  real(cdeps_real_kind), pointer ::  Si_tref(:)       => null()
+  real(cdeps_real_kind), pointer ::  Si_qref(:)       => null()
+  real(cdeps_real_kind), pointer ::  Si_avsdr(:)      => null()
+  real(cdeps_real_kind), pointer ::  Si_anidr(:)      => null()
+  real(cdeps_real_kind), pointer ::  Si_avsdf(:)      => null()
+  real(cdeps_real_kind), pointer ::  Si_anidf(:)      => null()
+  real(cdeps_real_kind), pointer ::  Faii_swnet(:)    => null()
+  real(cdeps_real_kind), pointer ::  Faii_sen(:)      => null()
+  real(cdeps_real_kind), pointer ::  Faii_lat(:)      => null()
+  real(cdeps_real_kind), pointer ::  Faii_lwup(:)     => null()
+  real(cdeps_real_kind), pointer ::  Faii_evap(:)     => null()
+  real(cdeps_real_kind), pointer ::  Faii_taux(:)     => null()
+  real(cdeps_real_kind), pointer ::  Faii_tauy(:)     => null()
+  real(cdeps_real_kind), pointer ::  Fioi_melth(:)    => null()
+  real(cdeps_real_kind), pointer ::  Fioi_meltw(:)    => null()
+  real(cdeps_real_kind), pointer ::  Fioi_swpen(:)    => null()
+  real(cdeps_real_kind), pointer ::  Fioi_taux(:)     => null()
+  real(cdeps_real_kind), pointer ::  Fioi_tauy(:)     => null()
+  real(cdeps_real_kind), pointer ::  Fioi_salt(:)     => null()
+  real(cdeps_real_kind), pointer ::  Fioi_bcpho(:)    => null()
+  real(cdeps_real_kind), pointer ::  Fioi_bcphi(:)    => null()
+  real(cdeps_real_kind), pointer ::  Fioi_flxdst(:)   => null()
+  real(cdeps_real_kind), pointer ::  Si_ifrac_n(:,:)  => null()
+  real(cdeps_real_kind), pointer ::  Fioi_swpen_ifrac_n(:,:) => null()
 
   ! import fields
-  real(r8), pointer :: Faxa_swvdr(:)    => null()
-  real(r8), pointer :: Faxa_swvdf(:)    => null()
-  real(r8), pointer :: Faxa_swndr(:)    => null()
-  real(r8), pointer :: Faxa_swndf(:)    => null()
-  real(r8), pointer :: Fioo_q(:)        => null()
-  real(r8), pointer :: Sa_z(:)          => null()
-  real(r8), pointer :: Sa_u(:)          => null()
-  real(r8), pointer :: Sa_v(:)          => null()
-  real(r8), pointer :: Sa_ptem(:)       => null()
-  real(r8), pointer :: Sa_shum(:)       => null()
-  real(r8), pointer :: Sa_dens(:)       => null()
-  real(r8), pointer :: Sa_tbot(:)       => null()
-  real(r8), pointer :: So_s(:)          => null()
-  real(r8), pointer :: Faxa_bcph(:,:)   => null()
-  real(r8), pointer :: Faxa_ocph(:,:)   => null()
-  real(r8), pointer :: Faxa_dstdry(:,:) => null()
-  real(r8), pointer :: Faxa_dstwet(:,:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_swvdr(:)    => null()
+  real(cdeps_real_kind), pointer :: Faxa_swvdf(:)    => null()
+  real(cdeps_real_kind), pointer :: Faxa_swndr(:)    => null()
+  real(cdeps_real_kind), pointer :: Faxa_swndf(:)    => null()
+  real(cdeps_real_kind), pointer :: Fioo_q(:)        => null()
+  real(cdeps_real_kind), pointer :: Sa_z(:)          => null()
+  real(cdeps_real_kind), pointer :: Sa_u(:)          => null()
+  real(cdeps_real_kind), pointer :: Sa_v(:)          => null()
+  real(cdeps_real_kind), pointer :: Sa_ptem(:)       => null()
+  real(cdeps_real_kind), pointer :: Sa_shum(:)       => null()
+  real(cdeps_real_kind), pointer :: Sa_dens(:)       => null()
+  real(cdeps_real_kind), pointer :: Sa_tbot(:)       => null()
+  real(cdeps_real_kind), pointer :: So_s(:)          => null()
+  real(cdeps_real_kind), pointer :: Faxa_bcph(:,:)   => null()
+  real(cdeps_real_kind), pointer :: Faxa_ocph(:,:)   => null()
+  real(cdeps_real_kind), pointer :: Faxa_dstdry(:,:) => null()
+  real(cdeps_real_kind), pointer :: Faxa_dstwet(:,:) => null()
 
   ! surface albedo constants
-  real(r8) , parameter :: snwfrac = 0.286_r8 ! snow cover fraction ~ [0,1]
-  real(r8) , parameter :: as_nidf = 0.950_r8 ! albedo: snow,near-infr,diffuse
-  real(r8) , parameter :: as_vsdf = 0.700_r8 ! albedo: snow,visible  ,diffuse
-  real(r8) , parameter :: as_nidr = 0.960_r8 ! albedo: snow,near-infr,direct
-  real(r8) , parameter :: as_vsdr = 0.800_r8 ! albedo: snow,visible  ,direct
-  real(r8) , parameter :: ai_nidf = 0.700_r8 ! albedo: ice, near-infr,diffuse
-  real(r8) , parameter :: ai_vsdf = 0.500_r8 ! albedo: ice, visible  ,diffuse
-  real(r8) , parameter :: ai_nidr = 0.700_r8 ! albedo: ice, near-infr,direct
-  real(r8) , parameter :: ai_vsdr = 0.500_r8 ! albedo: ice, visible  ,direct
-  real(r8) , parameter :: ax_nidf = ai_nidf*(1.0_r8-snwfrac) + as_nidf*snwfrac
-  real(r8) , parameter :: ax_vsdf = ai_vsdf*(1.0_r8-snwfrac) + as_vsdf*snwfrac
-  real(r8) , parameter :: ax_nidr = ai_nidr*(1.0_r8-snwfrac) + as_nidr*snwfrac
-  real(r8) , parameter :: ax_vsdr = ai_vsdr*(1.0_r8-snwfrac) + as_vsdr*snwfrac
+  real(cdeps_real_kind) , parameter :: snwfrac = 0.286_cdeps_real_kind ! snow cover fraction ~ [0,1]
+  real(cdeps_real_kind) , parameter :: as_nidf = 0.950_cdeps_real_kind ! albedo: snow,near-infr,diffuse
+  real(cdeps_real_kind) , parameter :: as_vsdf = 0.700_cdeps_real_kind ! albedo: snow,visible  ,diffuse
+  real(cdeps_real_kind) , parameter :: as_nidr = 0.960_cdeps_real_kind ! albedo: snow,near-infr,direct
+  real(cdeps_real_kind) , parameter :: as_vsdr = 0.800_cdeps_real_kind ! albedo: snow,visible  ,direct
+  real(cdeps_real_kind) , parameter :: ai_nidf = 0.700_cdeps_real_kind ! albedo: ice, near-infr,diffuse
+  real(cdeps_real_kind) , parameter :: ai_vsdf = 0.500_cdeps_real_kind ! albedo: ice, visible  ,diffuse
+  real(cdeps_real_kind) , parameter :: ai_nidr = 0.700_cdeps_real_kind ! albedo: ice, near-infr,direct
+  real(cdeps_real_kind) , parameter :: ai_vsdr = 0.500_cdeps_real_kind ! albedo: ice, visible  ,direct
+  real(cdeps_real_kind) , parameter :: ax_nidf = ai_nidf*(1.0_cdeps_real_kind-snwfrac) + as_nidf*snwfrac
+  real(cdeps_real_kind) , parameter :: ax_vsdf = ai_vsdf*(1.0_cdeps_real_kind-snwfrac) + as_vsdf*snwfrac
+  real(cdeps_real_kind) , parameter :: ax_nidr = ai_nidr*(1.0_cdeps_real_kind-snwfrac) + as_nidr*snwfrac
+  real(cdeps_real_kind) , parameter :: ax_vsdr = ai_vsdr*(1.0_cdeps_real_kind-snwfrac) + as_vsdr*snwfrac
 
   ! other parameters
-  real(r8) , parameter :: pi       = shr_const_pi     ! pi
-  real(r8) , parameter :: spval    = shr_const_spval  ! flags invalid data
-  real(r8) , parameter :: tFrz     = shr_const_tkfrz  ! temp of freezing
-  real(r8) , parameter :: latice   = shr_const_latice ! latent heat of fusion
-  real(r8) , parameter :: waterMax = 1000.0_r8        ! wrt iFrac comp & frazil ice (kg/m^2)
+  real(cdeps_real_kind) , parameter :: pi       = shr_const_pi     ! pi
+  real(cdeps_real_kind) , parameter :: spval    = shr_const_spval  ! flags invalid data
+  real(cdeps_real_kind) , parameter :: tFrz     = shr_const_tkfrz  ! temp of freezing
+  real(cdeps_real_kind) , parameter :: latice   = shr_const_latice ! latent heat of fusion
+  real(cdeps_real_kind) , parameter :: waterMax = 1000.0_cdeps_real_kind        ! wrt iFrac comp & frazil ice (kg/m^2)
 
   character(*) , parameter :: nullstr = 'null'
   character(*) , parameter :: rpfile  = 'rpointer.ice'
@@ -217,7 +217,7 @@ contains
     type(ESMF_Array)    :: elemMaskArray
     integer             :: spatialDim         ! number of dimension in mesh
     integer             :: numOwnedElements   ! size of mesh
-    real(r8), pointer   :: ownedElemCoords(:) ! mesh lat and lons
+    real(cdeps_real_kind), pointer   :: ownedElemCoords(:) ! mesh lat and lons
     character(len=*), parameter :: subname='(dice_init_pointers): '
     !-------------------------------------------------------------------------------
 
@@ -235,7 +235,7 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call ESMF_MeshGet(sdat%model_mesh, elemMaskArray=elemMaskArray, rc=rc) ! set the varues of imask
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    Si_imask(:) = real(imask(:), kind=r8) ! set the mask as real
+    Si_imask(:) = real(imask(:), kind=cdeps_real_kind) ! set the mask as real
     call ESMF_ArrayDestroy(elemMaskArray, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
@@ -333,23 +333,23 @@ contains
 
     ! initialize import arrays
     ! used for the first use in generating the export state and should have no impact on the solution
-    Faxa_swvdr(:)    = 0._r8
-    Faxa_swvdf(:)    = 0._r8
-    Faxa_swndr(:)    = 0._r8
-    Faxa_swndf(:)    = 0._r8
-    Faxa_bcph(:,:)   = 0._r8
-    Faxa_ocph(:,:)   = 0._r8
-    Faxa_dstdry(:,:) = 0._r8
-    Faxa_dstwet(:,:) = 0._r8
-    Fioo_q(:)        = 0._r8
-    Sa_z(:)          = 10.0_r8
-    Sa_u(:)          = 5.0_r8
-    Sa_v(:)          = 5.0_r8
-    Sa_ptem(:)       = 260.0_r8
-    Sa_tbot(:)       = 260.0_r8
-    Sa_shum(:)       = 0.0014_r8
-    Sa_dens(:)       = 1.3_r8
-    So_s(:)          = 0._r8
+    Faxa_swvdr(:)    = 0._cdeps_real_kind
+    Faxa_swvdf(:)    = 0._cdeps_real_kind
+    Faxa_swndr(:)    = 0._cdeps_real_kind
+    Faxa_swndf(:)    = 0._cdeps_real_kind
+    Faxa_bcph(:,:)   = 0._cdeps_real_kind
+    Faxa_ocph(:,:)   = 0._cdeps_real_kind
+    Faxa_dstdry(:,:) = 0._cdeps_real_kind
+    Faxa_dstwet(:,:) = 0._cdeps_real_kind
+    Fioo_q(:)        = 0._cdeps_real_kind
+    Sa_z(:)          = 10.0_cdeps_real_kind
+    Sa_u(:)          = 5.0_cdeps_real_kind
+    Sa_v(:)          = 5.0_cdeps_real_kind
+    Sa_ptem(:)       = 260.0_cdeps_real_kind
+    Sa_tbot(:)       = 260.0_cdeps_real_kind
+    Sa_shum(:)       = 0.0014_cdeps_real_kind
+    Sa_dens(:)       = 1.3_cdeps_real_kind
+    So_s(:)          = 0._cdeps_real_kind
 
     ! Determine water from restart if needed
     ! allocate module arrays that are not part of import and export state
@@ -375,13 +375,13 @@ contains
     ! input/output variables
     type(ESMF_State)       , intent(inout) :: exportState
     type(ESMF_State)       , intent(inout) :: importState
-    real(r8)               , intent(in)    :: cosarg     ! for setting ice temp pattern
+    real(cdeps_real_kind)               , intent(in)    :: cosarg     ! for setting ice temp pattern
     logical                , intent(in)    :: flds_i2o_per_cat
-    real(r8)               , intent(in)    :: flux_swpf  ! short-wave penatration factor
-    real(r8)               , intent(in)    :: flux_Qmin  ! bound on melt rate
+    real(cdeps_real_kind)               , intent(in)    :: flux_swpf  ! short-wave penatration factor
+    real(cdeps_real_kind)               , intent(in)    :: flux_Qmin  ! bound on melt rate
     logical                , intent(in)    :: flux_Qacc  ! activates water accumulation/melt wrt Q
-    real(r8)               , intent(in)    :: flux_Qacc0 ! initial water accumulation value
-    real(r8)               , intent(in)    :: dt
+    real(cdeps_real_kind)               , intent(in)    :: flux_Qacc0 ! initial water accumulation value
+    real(cdeps_real_kind)               , intent(in)    :: dt
     integer                , intent(in)    :: logunit
     logical                , intent(in)    :: restart_read
     integer                , intent(out)   :: rc
@@ -390,8 +390,8 @@ contains
     logical               :: first_time = .true.
     integer               :: n
     integer               :: lsize
-    real(r8)              :: qmeltall ! q that would melt all accumulated water
-    real(r8), allocatable :: tfreeze(:)
+    real(cdeps_real_kind)              :: qmeltall ! q that would melt all accumulated water
+    real(cdeps_real_kind), allocatable :: tfreeze(:)
     character(len=*), parameter :: subname='(dice_datamode_ssmi_advance): '
     !-------------------------------------------------------------------------------
 
@@ -407,10 +407,10 @@ contains
           ! the call to this routine in docn_datamode_ssmi_restart_read
           allocate(water(lsize))
           do n = 1,lsize
-             if (Si_ifrac(n) > 0.0_r8) then
+             if (Si_ifrac(n) > 0.0_cdeps_real_kind) then
                 water(n) = flux_Qacc0
              else
-                water(n) = 0.0_r8
+                water(n) = 0.0_cdeps_real_kind
              end if
           end do
           ! iFrac0 = iFrac  ! previous step's ice fraction
@@ -426,13 +426,13 @@ contains
        tfreeze(n) = shr_frz_freezetemp(So_s(n)) + tFrz
 
        !--- fix erroneous iFrac ---
-       Si_ifrac(n) = min(1.0_r8,max(0.0_r8,Si_ifrac(n)))
+       Si_ifrac(n) = min(1.0_cdeps_real_kind,max(0.0_cdeps_real_kind,Si_ifrac(n)))
 
        !--- fabricate ice surface T, fix erroneous iFrac ---
-       if ( yc(n) > 0.0_r8) then
-          Si_t(n) = 260.0_r8 + 10.0_r8*cos(cosArg)
+       if ( yc(n) > 0.0_cdeps_real_kind) then
+          Si_t(n) = 260.0_cdeps_real_kind + 10.0_cdeps_real_kind*cos(cosArg)
        else
-          Si_t(n) = 260.0_r8 - 10.0_r8*cos(cosArg)
+          Si_t(n) = 260.0_cdeps_real_kind - 10.0_cdeps_real_kind*cos(cosArg)
        end if
 
        !--- set albedos (constant) ---
@@ -444,14 +444,14 @@ contains
        !--- swnet is sent to cpl as a diagnostic quantity only ---
        !--- newly recv'd swdn goes with previously sent albedo ---
        !--- but albedos are (currently) time invariant         ---
-       Faii_swnet(n)   = (1.0_r8 - Si_avsdr(n))*Faxa_swvdr(n) &
-                       + (1.0_r8 - Si_anidr(n))*Faxa_swndr(n) &
-                       + (1.0_r8 - Si_avsdf(n))*Faxa_swvdf(n) &
-                       + (1.0_r8 - Si_anidf(n))*Faxa_swndf(n)
+       Faii_swnet(n)   = (1.0_cdeps_real_kind - Si_avsdr(n))*Faxa_swvdr(n) &
+                       + (1.0_cdeps_real_kind - Si_anidr(n))*Faxa_swndr(n) &
+                       + (1.0_cdeps_real_kind - Si_avsdf(n))*Faxa_swvdf(n) &
+                       + (1.0_cdeps_real_kind - Si_anidf(n))*Faxa_swndf(n)
 
        !--- compute melt/freeze water balance, adjust iFrac  -------------
        if ( .not. flux_Qacc ) then ! Q accumulation option is OFF
-          Fioi_melth(n) = min(Fioo_q(n),0.0_r8 )          ! q<0 => melt potential
+          Fioi_melth(n) = min(Fioo_q(n),0.0_cdeps_real_kind )          ! q<0 => melt potential
           Fioi_melth(n) = max(Fioi_melth(n),Flux_Qmin   ) ! limit the melt rate
           Fioi_meltw(n) =    -Fioi_melth(n)/latice        ! corresponding water flux
 
@@ -463,8 +463,8 @@ contains
           ! 2b) Q>0 & iFrac = 0  =>  accumulated water
           !--------------------------------------------------------------
 
-          if ( Fioo_q(n) <  0.0_r8 ) then ! Q<0 => melt
-             if (Si_ifrac(n) > 0.0_r8 ) then
+          if ( Fioo_q(n) <  0.0_cdeps_real_kind ) then ! Q<0 => melt
+             if (Si_ifrac(n) > 0.0_cdeps_real_kind ) then
                 Fioi_melth(n) = Si_ifrac(n)*max(Fioo_q(n),Flux_Qmin)
                 Fioi_meltw(n) =    -Fioi_melth(n)/latice
                 !  water(n) = < don't change this value >
@@ -475,34 +475,34 @@ contains
                 water(n) =  water(n) - Fioi_meltw(n)*dt
              end if
           else                       ! Q>0 => freeze
-             if (Si_ifrac(n) > 0.0_r8 ) then
-                Fioi_melth(n) = 0.0_r8
-                Fioi_meltw(n) = 0.0_r8
-                water(n) = 0.0_r8
+             if (Si_ifrac(n) > 0.0_cdeps_real_kind ) then
+                Fioi_melth(n) = 0.0_cdeps_real_kind
+                Fioi_meltw(n) = 0.0_cdeps_real_kind
+                water(n) = 0.0_cdeps_real_kind
              else
-                Fioi_melth(n) = 0.0_r8
-                Fioi_meltw(n) = 0.0_r8
+                Fioi_melth(n) = 0.0_cdeps_real_kind
+                Fioi_meltw(n) = 0.0_cdeps_real_kind
                 water(n) = water(n) + dt*Fioo_q(n)/latice
              end if
           end if
 
-          if (water(n) < 1.0e-16_r8 ) water(n) = 0.0_r8
+          if (water(n) < 1.0e-16_cdeps_real_kind ) water(n) = 0.0_cdeps_real_kind
 
           !--- non-zero water => non-zero iFrac ---
-          if (Si_ifrac(n) <= 0.0_r8  .and.  water(n) > 0.0_r8) then
-             Si_ifrac(n) = min(1.0_r8,water(n)/waterMax)
+          if (Si_ifrac(n) <= 0.0_cdeps_real_kind  .and.  water(n) > 0.0_cdeps_real_kind) then
+             Si_ifrac(n) = min(1.0_cdeps_real_kind,water(n)/waterMax)
              ! Si_t(n) = tfreeze(n)     ! T can be above freezing?!?
           end if
 
           !--- cpl multiplies Fioi_melth & Fioi_meltw by iFrac ---
           !--- divide by iFrac here => fixed quantity flux (not per area) ---
-          if (Si_ifrac(n) > 0.0_r8) then
-             Si_ifrac(n) = max( 0.01_r8, Si_ifrac(n)) ! min iFrac
+          if (Si_ifrac(n) > 0.0_cdeps_real_kind) then
+             Si_ifrac(n) = max( 0.01_cdeps_real_kind, Si_ifrac(n)) ! min iFrac
              Fioi_melth(n) = Fioi_melth(n)/Si_ifrac(n)
              Fioi_meltw(n) = Fioi_meltw(n)/Si_ifrac(n)
           else
-             Fioi_melth(n) = 0.0_r8
-             Fioi_meltw(n) = 0.0_r8
+             Fioi_melth(n) = 0.0_cdeps_real_kind
+             Fioi_meltw(n) = 0.0_cdeps_real_kind
           end if
        end if
 
@@ -527,17 +527,17 @@ contains
           Fioi_salt (n) = spval
           Fioi_taux(n)  = spval
           Fioi_tauy(n)  = spval
-          Si_ifrac(n)   = 0.0_r8
+          Si_ifrac(n)   = 0.0_cdeps_real_kind
        else
           !--- penetrating short wave ---
-          Fioi_swpen(n) = max(0.0_r8, flux_swpf*Faii_swnet(n) ) ! must be non-negative
+          Fioi_swpen(n) = max(0.0_cdeps_real_kind, flux_swpf*Faii_swnet(n) ) ! must be non-negative
 
           !--- i/o surface stress ( = atm/ice stress) ---
           Fioi_taux(n) = Faii_taux(n)
           Fioi_tauy(n) = Faii_tauy(n)
 
           !--- salt flux ---
-          Fioi_salt(n) = 0.0_r8
+          Fioi_salt(n) = 0.0_cdeps_real_kind
        end if
        ! !--- save ifrac for next timestep
        ! iFrac0(n) = Si_ifrac(n)

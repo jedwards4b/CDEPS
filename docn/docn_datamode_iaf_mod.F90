@@ -2,11 +2,11 @@ module docn_datamode_iaf_mod
 
   use ESMF             , only : ESMF_SUCCESS, ESMF_LOGMSG_INFO, ESMF_LogWrite, ESMF_State
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod      , only : shr_sys_abort
   use shr_const_mod    , only : shr_const_TkFrz, shr_const_pi, shr_const_ocn_ref_sal
   use dshr_strdata_mod , only : shr_strdata_get_stream_pointer, shr_strdata_type
   use dshr_methods_mod , only : dshr_state_getfldptr, dshr_fldbun_getfldptr, chkerr
+  use dshr_methods_mod , only : cdeps_real_kind, i8, cl, cs
   use dshr_strdata_mod , only : shr_strdata_type
   use dshr_mod         , only : dshr_restart_read, dshr_restart_write
   use dshr_fldlist_mod , only : fldlist_type, dshr_fldlist_add
@@ -22,24 +22,24 @@ module docn_datamode_iaf_mod
   public :: docn_datamode_iaf_restart_write
 
   ! export fields
-  real(r8), pointer :: So_omask(:)  => null()    ! real ocean fraction sent to mediator
-  real(r8), pointer :: So_t(:)      => null()
-  real(r8), pointer :: So_s(:)      => null()
-  real(r8), pointer :: So_u(:)      => null()
-  real(r8), pointer :: So_v(:)      => null()
+  real(cdeps_real_kind), pointer :: So_omask(:)  => null()    ! real ocean fraction sent to mediator
+  real(cdeps_real_kind), pointer :: So_t(:)      => null()
+  real(cdeps_real_kind), pointer :: So_s(:)      => null()
+  real(cdeps_real_kind), pointer :: So_u(:)      => null()
+  real(cdeps_real_kind), pointer :: So_v(:)      => null()
 
   ! import  fields
-  real(r8), pointer :: Foxx_swnet(:) => null()
-  real(r8), pointer :: Foxx_lwup(:)  => null()
-  real(r8), pointer :: Foxx_sen(:)   => null()
-  real(r8), pointer :: Foxx_lat(:)   => null()
-  real(r8), pointer :: Faxa_lwdn(:)  => null()
-  real(r8), pointer :: Faxa_snow(:)  => null()
-  real(r8), pointer :: Fioi_melth(:) => null()
-  real(r8), pointer :: Foxx_rofi(:)  => null()
+  real(cdeps_real_kind), pointer :: Foxx_swnet(:) => null()
+  real(cdeps_real_kind), pointer :: Foxx_lwup(:)  => null()
+  real(cdeps_real_kind), pointer :: Foxx_sen(:)   => null()
+  real(cdeps_real_kind), pointer :: Foxx_lat(:)   => null()
+  real(cdeps_real_kind), pointer :: Faxa_lwdn(:)  => null()
+  real(cdeps_real_kind), pointer :: Faxa_snow(:)  => null()
+  real(cdeps_real_kind), pointer :: Fioi_melth(:) => null()
+  real(cdeps_real_kind), pointer :: Foxx_rofi(:)  => null()
 
-  real(r8) , parameter :: tkfrz   = shr_const_tkfrz       ! freezing point, fresh water (kelvin)
-  real(r8) , parameter :: ocnsalt = shr_const_ocn_ref_sal ! ocean reference salinity
+  real(cdeps_real_kind) , parameter :: tkfrz   = shr_const_tkfrz       ! freezing point, fresh water (kelvin)
+  real(cdeps_real_kind) , parameter :: ocnsalt = shr_const_ocn_ref_sal ! ocean reference salinity
 
   character(*) , parameter :: nullstr = 'null'
   character(*) , parameter :: rpfile  = 'rpointer.ocn'
@@ -109,7 +109,7 @@ contains
     ! input/output variables
     type(ESMF_State)       , intent(inout) :: exportState
     type(ESMF_State)       , intent(inout) :: importState
-    real(r8)               , intent(in)    :: ocn_fraction(:)
+    real(cdeps_real_kind)               , intent(in)    :: ocn_fraction(:)
     integer                , intent(out)   :: rc
 
     ! local variables

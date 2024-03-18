@@ -2,10 +2,10 @@ module docn_datamode_cplhist_mod
 
   use ESMF             , only : ESMF_State, ESMF_LOGMSG_INFO, ESMF_LogWrite, ESMF_SUCCESS
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_const_mod    , only : shr_const_TkFrz, shr_const_pi, shr_const_ocn_ref_sal
   use shr_sys_mod      , only : shr_sys_abort
   use dshr_methods_mod , only : dshr_state_getfldptr, dshr_fldbun_getfldptr, chkerr
+  use dshr_methods_mod , only : cdeps_real_kind, i8, cl, cs
   use dshr_fldlist_mod , only : fldlist_type, dshr_fldlist_add
   use dshr_mod         , only : dshr_restart_read, dshr_restart_write
   use dshr_strdata_mod , only : shr_strdata_type
@@ -20,14 +20,14 @@ module docn_datamode_cplhist_mod
   public  :: docn_datamode_cplhist_restart_write
 
   ! export fields
-  real(r8), pointer :: So_omask(:)  => null()    ! real ocean fraction sent to mediator
-  real(r8), pointer :: So_t(:)      => null()
-  real(r8), pointer :: So_u(:)      => null()
-  real(r8), pointer :: So_v(:)      => null()
-  real(r8), pointer :: So_bldepth(:) => null()
+  real(cdeps_real_kind), pointer :: So_omask(:)  => null()    ! real ocean fraction sent to mediator
+  real(cdeps_real_kind), pointer :: So_t(:)      => null()
+  real(cdeps_real_kind), pointer :: So_u(:)      => null()
+  real(cdeps_real_kind), pointer :: So_v(:)      => null()
+  real(cdeps_real_kind), pointer :: So_bldepth(:) => null()
 
-  real(r8) , parameter :: tkfrz   = shr_const_tkfrz       ! freezing point, fresh water (kelvin)
-  real(r8) , parameter :: ocnsalt = shr_const_ocn_ref_sal ! ocean reference salinity
+  real(cdeps_real_kind) , parameter :: tkfrz   = shr_const_tkfrz       ! freezing point, fresh water (kelvin)
+  real(cdeps_real_kind) , parameter :: ocnsalt = shr_const_ocn_ref_sal ! ocean reference salinity
 
   character(*) , parameter :: nullstr = 'null'
   character(*) , parameter :: rpfile  = 'rpointer.ocn'
@@ -75,7 +75,7 @@ contains
 
     ! input/output variables
     type(ESMF_State) , intent(inout) :: exportState
-    real(r8)         , intent(in)    :: ocn_fraction(:)
+    real(cdeps_real_kind)         , intent(in)    :: ocn_fraction(:)
     integer          , intent(out)   :: rc
 
     ! local variables
@@ -96,10 +96,10 @@ contains
     call dshr_state_getfldptr(exportState, 'So_bldepth', fldptr1=So_bldepth, allowNullReturn=.true., rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-    So_u(:) = 0.0_r8
-    So_v(:) = 0.0_r8
+    So_u(:) = 0.0_cdeps_real_kind
+    So_v(:) = 0.0_cdeps_real_kind
     So_t(:) = TkFrz
-    So_bldepth(:) = 0.0_r8
+    So_bldepth(:) = 0.0_cdeps_real_kind
 
     ! Set export state ocean fraction (So_omask)
     So_omask(:) = ocn_fraction(:)

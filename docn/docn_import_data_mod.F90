@@ -3,9 +3,8 @@ module docn_import_data_mod
    use ESMF             , only : ESMF_State, ESMF_LOGMSG_INFO, ESMF_LogWrite, ESMF_SUCCESS
    use ESMF             , only : ESMF_LOGMSG_ERROR, ESMF_FAILURE
    use NUOPC            , only : NUOPC_Advertise
-   use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
    use dshr_fldlist_mod , only : fldlist_type, dshr_fldlist_add
-   use dshr_methods_mod , only : chkerr
+   use dshr_methods_mod , only : chkerr, cl
 
    implicit none
    private ! except

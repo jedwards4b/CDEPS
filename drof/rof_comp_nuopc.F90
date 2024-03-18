@@ -23,12 +23,12 @@ module cdeps_drof_comp
   use NUOPC_Model      , only : model_label_SetRunClock => label_SetRunClock
   use NUOPC_Model      , only : model_label_Finalize    => label_Finalize
   use NUOPC_Model      , only : NUOPC_ModelGet, SetVM
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_const_mod    , only : SHR_CONST_SPVAL
   use shr_sys_mod      , only : shr_sys_abort
   use shr_cal_mod      , only : shr_cal_ymd2date
   use shr_log_mod     , only : shr_log_setLogUnit
   use dshr_methods_mod , only : dshr_state_getfldptr, dshr_state_diagnose, chkerr, memcheck
+  use dshr_methods_mod, only : cdeps_real_kind, i8, cl, cs
   use dshr_strdata_mod , only : shr_strdata_type, shr_strdata_advance, shr_strdata_get_stream_domain
   use dshr_strdata_mod , only : shr_strdata_init_from_config
   use dshr_mod         , only : dshr_model_initphase, dshr_init
@@ -92,12 +92,12 @@ module cdeps_drof_comp
   type(dfield_type)  , pointer :: dfields    => null()
 
   ! model mask and model fraction
-  real(r8), pointer            :: model_frac(:) => null()
+  real(cdeps_real_kind), pointer            :: model_frac(:) => null()
   integer , pointer            :: model_mask(:) => null()
 
   ! module pointer arrays
-  real(r8), pointer            :: Forr_rofl(:) => null()
-  real(r8), pointer            :: Forr_rofi(:) => null()
+  real(cdeps_real_kind), pointer            :: Forr_rofl(:) => null()
+  real(cdeps_real_kind), pointer            :: Forr_rofi(:) => null()
 
   character(*) , parameter     :: u_FILE_u = &
        __FILE__
@@ -439,8 +439,8 @@ contains
     case('copyall')
        ! zero out "special values" of export fields
        do n = 1, size(Forr_rofl)
-          if (abs(Forr_rofl(n)) > 1.0e28) Forr_rofl(n) = 0.0_r8
-          if (abs(Forr_rofi(n)) > 1.0e28) Forr_rofi(n) = 0.0_r8
+          if (abs(Forr_rofl(n)) > 1.0e28) Forr_rofl(n) = 0.0_cdeps_real_kind
+          if (abs(Forr_rofi(n)) > 1.0e28) Forr_rofi(n) = 0.0_cdeps_real_kind
        enddo
     end select
 

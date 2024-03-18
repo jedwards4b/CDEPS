@@ -5,7 +5,6 @@ module docn_datamode_som_mod
   use ESMF             , only : ESMF_LOGMSG_INFO, ESMF_STATEITEM_NOTFOUND, operator(/=)
   use ESMF             , only : ESMF_LogWrite
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod      , only : shr_sys_abort
   use shr_const_mod    , only : shr_const_cpsw, shr_const_rhosw, shr_const_TkFrz
   use shr_const_mod    , only : shr_const_TkFrzSw, shr_const_latice, shr_const_ocn_ref_sal
@@ -13,6 +12,7 @@ module docn_datamode_som_mod
   use shr_frz_mod      , only : shr_frz_freezetemp
   use dshr_strdata_mod , only : shr_strdata_get_stream_pointer, shr_strdata_type
   use dshr_methods_mod , only : dshr_state_getfldptr, dshr_fldbun_getfldptr, chkerr
+  use dshr_methods_mod , only : cdeps_real_kind, i8, cl, cs
   use dshr_strdata_mod , only : shr_strdata_type
   use dshr_mod         , only : dshr_restart_read, dshr_restart_write
   use dshr_fldlist_mod , only : fldlist_type, dshr_fldlist_add
@@ -27,42 +27,42 @@ module docn_datamode_som_mod
   public :: docn_datamode_som_restart_write
 
   ! export fields
-  real(r8), pointer :: So_omask(:)  => null()    ! real ocean fraction sent to mediator
-  real(r8), pointer :: So_t(:)      => null()
-  real(r8), pointer :: So_s(:)      => null()
-  real(r8), pointer :: So_u(:)      => null()
-  real(r8), pointer :: So_v(:)      => null()
-  real(r8), pointer :: So_dhdx(:)   => null()
-  real(r8), pointer :: So_dhdy(:)   => null()
-  real(r8), pointer :: Fioo_q(:)    => null()
-  real(r8), pointer :: So_fswpen(:) => null()
+  real(cdeps_real_kind), pointer :: So_omask(:)  => null()    ! real ocean fraction sent to mediator
+  real(cdeps_real_kind), pointer :: So_t(:)      => null()
+  real(cdeps_real_kind), pointer :: So_s(:)      => null()
+  real(cdeps_real_kind), pointer :: So_u(:)      => null()
+  real(cdeps_real_kind), pointer :: So_v(:)      => null()
+  real(cdeps_real_kind), pointer :: So_dhdx(:)   => null()
+  real(cdeps_real_kind), pointer :: So_dhdy(:)   => null()
+  real(cdeps_real_kind), pointer :: Fioo_q(:)    => null()
+  real(cdeps_real_kind), pointer :: So_fswpen(:) => null()
 
   ! import  fields
-  real(r8), pointer :: Foxx_swnet(:) => null()
-  real(r8), pointer :: Foxx_lwup(:)  => null()
-  real(r8), pointer :: Foxx_sen(:)   => null()
-  real(r8), pointer :: Foxx_lat(:)   => null()
-  real(r8), pointer :: Faxa_lwdn(:)  => null()
-  real(r8), pointer :: Faxa_snow(:)  => null()
-  real(r8), pointer :: Fioi_melth(:) => null()
-  real(r8), pointer :: Foxx_rofi(:)  => null()
+  real(cdeps_real_kind), pointer :: Foxx_swnet(:) => null()
+  real(cdeps_real_kind), pointer :: Foxx_lwup(:)  => null()
+  real(cdeps_real_kind), pointer :: Foxx_sen(:)   => null()
+  real(cdeps_real_kind), pointer :: Foxx_lat(:)   => null()
+  real(cdeps_real_kind), pointer :: Faxa_lwdn(:)  => null()
+  real(cdeps_real_kind), pointer :: Faxa_snow(:)  => null()
+  real(cdeps_real_kind), pointer :: Fioi_melth(:) => null()
+  real(cdeps_real_kind), pointer :: Foxx_rofi(:)  => null()
 
   ! internal stream type
-  real(r8), pointer :: strm_h(:)    => null()
-  real(r8), pointer :: strm_qbot(:) => null()
+  real(cdeps_real_kind), pointer :: strm_h(:)    => null()
+  real(cdeps_real_kind), pointer :: strm_qbot(:) => null()
 
   ! restart fields
-  real(R8), public, pointer :: somtp(:)     ! SOM ocean temperature needed for restart
+  real(cdeps_real_kind), public, pointer :: somtp(:)     ! SOM ocean temperature needed for restart
 
-  real(R8) :: dt                            ! real model timestep
+  real(cdeps_real_kind) :: dt                            ! real model timestep
 
   ! constants
-  real(r8) , parameter :: cpsw    = shr_const_cpsw        ! specific heat of sea h2o ~ j/kg/k
-  real(r8) , parameter :: rhosw   = shr_const_rhosw       ! density of sea water ~ kg/m^3
-  real(r8) , parameter :: tkfrz   = shr_const_tkfrz       ! freezing point, fresh water (kelvin)
-  real(r8) , parameter :: tkfrzsw = shr_const_tkfrzsw     ! freezing point, sea   water (kelvin)
-  real(r8) , parameter :: latice  = shr_const_latice      ! latent heat of fusion
-  real(r8) , parameter :: ocnsalt = shr_const_ocn_ref_sal ! ocean reference salinity
+  real(cdeps_real_kind) , parameter :: cpsw    = shr_const_cpsw        ! specific heat of sea h2o ~ j/kg/k
+  real(cdeps_real_kind) , parameter :: rhosw   = shr_const_rhosw       ! density of sea water ~ kg/m^3
+  real(cdeps_real_kind) , parameter :: tkfrz   = shr_const_tkfrz       ! freezing point, fresh water (kelvin)
+  real(cdeps_real_kind) , parameter :: tkfrzsw = shr_const_tkfrzsw     ! freezing point, sea   water (kelvin)
+  real(cdeps_real_kind) , parameter :: latice  = shr_const_latice      ! latent heat of fusion
+  real(cdeps_real_kind) , parameter :: ocnsalt = shr_const_ocn_ref_sal ! ocean reference salinity
 
   character(*) , parameter :: nullstr = 'null'
   character(*) , parameter :: rpfile  = 'rpointer.ocn'
@@ -138,14 +138,14 @@ contains
     type(ESMF_State)       , intent(inout) :: exportState
     type(ESMF_State)       , intent(inout) :: importState
     type(shr_strdata_type) , intent(in)    :: sdat
-    real(r8)               , intent(in)    :: ocn_fraction(:)
+    real(cdeps_real_kind)               , intent(in)    :: ocn_fraction(:)
     integer                , intent(out)   :: rc
 
     ! local variables
     type(ESMF_StateItem_Flag)   :: itemFlag
     character(len=*), parameter :: subname='(docn_init_pointers): '
-    real(R8)        , parameter   :: &
-         swp = 0.67_R8*(exp((-1._R8*shr_const_zsrflyr) /1.0_R8)) + 0.33_R8*exp((-1._R8*shr_const_zsrflyr)/17.0_R8)
+    real(cdeps_real_kind)        , parameter   :: &
+         swp = 0.67_cdeps_real_kind*(exp((-1._cdeps_real_kind*shr_const_zsrflyr) /1.0_cdeps_real_kind)) + 0.33_cdeps_real_kind*exp((-1._cdeps_real_kind*shr_const_zsrflyr)/17.0_cdeps_real_kind)
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -229,7 +229,7 @@ contains
     logical                 :: first_time = .true.
     type(ESMF_TimeInterval) :: timeStep
     integer                 :: idt          ! integer model timestep
-    real(r8), allocatable   :: tfreeze(:)         ! SOM ocean freezing temperature
+    real(cdeps_real_kind), allocatable   :: tfreeze(:)         ! SOM ocean freezing temperature
     integer                 :: lsize
     integer                 :: n
     logical                 :: reset_temp
@@ -247,18 +247,18 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        call ESMF_TimeIntervalGet( timeStep, s=idt, rc=rc )
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       dt = idt * 1.0_r8
+       dt = idt * 1.0_cdeps_real_kind
 
        do n = 1,lsize
-          if (So_omask(n) /= 0._r8) then
+          if (So_omask(n) /= 0._cdeps_real_kind) then
              if (.not. restart_read) then
                 somtp(n) = So_t(n) + TkFrz
              endif
              So_t(n) = somtp(n)
           else
-             So_t(n) = 0._r8
+             So_t(n) = 0._cdeps_real_kind
           end if
-          Fioo_q(n) = 0.0_R8
+          Fioo_q(n) = 0.0_cdeps_real_kind
        enddo
 
     else
@@ -273,7 +273,7 @@ contains
        allocate(tfreeze(lsize))
        tfreeze(:) = shr_frz_freezetemp(So_s(:)) + TkFrz
        do n = 1,lsize
-          if (So_omask(n) /= 0._r8) then
+          if (So_omask(n) /= 0._cdeps_real_kind) then
              ! compute new temp (last term is latent by prec and roff)
              So_t(n) = somtp(n) +  &
                   ( Foxx_swnet(n) + Foxx_lwup(n) + Faxa_lwdn(n) + Foxx_sen(n) + Foxx_lat(n) + &

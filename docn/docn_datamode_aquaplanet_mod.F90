@@ -2,10 +2,10 @@ module docn_datamode_aquaplanet_mod
 
   use ESMF             , only : ESMF_SUCCESS, ESMF_State, ESMF_Mesh, ESMF_MeshGet, ESMF_LogWrite, ESMF_LOGMSG_INFO
   use NUOPC            , only : NUOPC_Advertise
-  use shr_kind_mod     , only : r8=>shr_kind_r8, i8=>shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_const_mod    , only : shr_const_TkFrz, shr_const_pi
   use shr_sys_mod      , only : shr_sys_abort
   use dshr_methods_mod , only : dshr_state_getfldptr, dshr_fldbun_getfldptr, chkerr
+  use dshr_methods_mod , only : cdeps_real_kind, i8, cl, cs
   use dshr_fldlist_mod , only : fldlist_type, dshr_fldlist_add
 
   implicit none
@@ -16,35 +16,35 @@ module docn_datamode_aquaplanet_mod
   public :: docn_datamode_aquaplanet_advance
 
   ! export fields
-  real(r8), pointer    :: So_omask(:)  => null()    ! real ocean fraction sent to mediator
-  real(r8), pointer    :: So_t(:)      => null()
-  real(r8), pointer    :: So_u(:)      => null()
-  real(r8), pointer    :: So_v(:)      => null()
+  real(cdeps_real_kind), pointer    :: So_omask(:)  => null()    ! real ocean fraction sent to mediator
+  real(cdeps_real_kind), pointer    :: So_t(:)      => null()
+  real(cdeps_real_kind), pointer    :: So_u(:)      => null()
+  real(cdeps_real_kind), pointer    :: So_v(:)      => null()
 
   ! model mesh lats and lons in radians
-  real(r8), pointer    :: rlon(:), rlat(:)
+  real(cdeps_real_kind), pointer    :: rlon(:), rlat(:)
 
   ! parameters
-  real(r8) , parameter :: tkfrz = shr_const_tkfrz ! freezing point, fresh water (kelvin)
-  real(r8) , parameter :: pi    = shr_const_pi    ! 3.14....
-  real(r8) , parameter :: pio180 = shr_const_pi/180._r8
+  real(cdeps_real_kind) , parameter :: tkfrz = shr_const_tkfrz ! freezing point, fresh water (kelvin)
+  real(cdeps_real_kind) , parameter :: pi    = shr_const_pi    ! 3.14....
+  real(cdeps_real_kind) , parameter :: pio180 = shr_const_pi/180._cdeps_real_kind
 
   ! parameters for zonally symmetric experiments
-  real(r8) , parameter :: t0_max     = 27._r8
-  real(r8) , parameter :: t0_min     = 0._r8
-  real(r8) , parameter :: maxlat     = 60._r8*pio180
-  real(r8) , parameter :: shift      = 5._r8*pio180
-  real(r8) , parameter :: shift9     = 10._r8*pio180
-  real(r8) , parameter :: shift10    = 15._r8*pio180
+  real(cdeps_real_kind) , parameter :: t0_max     = 27._cdeps_real_kind
+  real(cdeps_real_kind) , parameter :: t0_min     = 0._cdeps_real_kind
+  real(cdeps_real_kind) , parameter :: maxlat     = 60._cdeps_real_kind*pio180
+  real(cdeps_real_kind) , parameter :: shift      = 5._cdeps_real_kind*pio180
+  real(cdeps_real_kind) , parameter :: shift9     = 10._cdeps_real_kind*pio180
+  real(cdeps_real_kind) , parameter :: shift10    = 15._cdeps_real_kind*pio180
 
   ! parameters for zonally asymmetric experiments
-  real(r8) , parameter :: t0_max6    = 1._r8
-  real(r8) , parameter :: t0_max7    = 3._r8
-  real(r8) , parameter :: latcen     = 0._r8*pio180
-  real(r8) , parameter :: loncen     = 0._r8*pio180
-  real(r8) , parameter :: latrad6    = 15._r8*pio180
-  real(r8) , parameter :: latrad8    = 30._r8*pio180
-  real(r8) , parameter :: lonrad     = 30._r8*pio180
+  real(cdeps_real_kind) , parameter :: t0_max6    = 1._cdeps_real_kind
+  real(cdeps_real_kind) , parameter :: t0_max7    = 3._cdeps_real_kind
+  real(cdeps_real_kind) , parameter :: latcen     = 0._cdeps_real_kind*pio180
+  real(cdeps_real_kind) , parameter :: loncen     = 0._cdeps_real_kind*pio180
+  real(cdeps_real_kind) , parameter :: latrad6    = 15._cdeps_real_kind*pio180
+  real(cdeps_real_kind) , parameter :: latrad8    = 30._cdeps_real_kind*pio180
+  real(cdeps_real_kind) , parameter :: lonrad     = 30._cdeps_real_kind*pio180
 
   character(*) , parameter :: u_FILE_u = &
        __FILE__
@@ -88,7 +88,7 @@ contains
 
     ! input/output variables
     type(ESMF_State) , intent(inout) :: exportState
-    real(r8)         , intent(in)    :: ocn_fraction(:)
+    real(cdeps_real_kind)         , intent(in)    :: ocn_fraction(:)
     integer          , intent(out)   :: rc
 
     ! local variables
@@ -106,8 +106,8 @@ contains
     call dshr_state_getfldptr(exportState, 'So_v'     , fldptr1=So_v, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
 
-    So_u(:)   = 0.0_r8
-    So_v(:)   = 0.0_r8
+    So_u(:)   = 0.0_cdeps_real_kind
+    So_v(:)   = 0.0_cdeps_real_kind
 
     ! Set export state ocean fraction (So_omask)
     So_omask(:) = ocn_fraction(:)
@@ -121,7 +121,7 @@ contains
     type(ESMF_State)       , intent(inout) :: exportState
     type(ESMF_Mesh)        , intent(in)    :: model_mesh
     integer , optional     , intent(in)    :: sst_option
-    real(r8), optional     , intent(in)    :: sst_constant_value
+    real(cdeps_real_kind), optional     , intent(in)    :: sst_constant_value
     integer                , intent(out)   :: rc
 
     ! local variables
@@ -130,8 +130,8 @@ contains
     integer           :: n,i
     integer           :: spatialDim         ! number of dimension in mesh
     integer           :: numOwnedElements   ! size of mesh
-    real(r8)          :: tmp, tmp1
-    real(r8), pointer :: ownedElemCoords(:) ! mesh lat and lons
+    real(cdeps_real_kind)          :: tmp, tmp1
+    real(cdeps_real_kind), pointer :: ownedElemCoords(:) ! mesh lat and lons
     character(len=*), parameter :: subname='(docn_datamode_aquaplanet): '
     !-------------------------------------------------------------------------------
 
@@ -176,8 +176,8 @@ contains
              if (abs(rlat(i)) > maxlat) then
                 So_t(i) = t0_min
              else
-                tmp = sin(rlat(i)*pi*0.5_r8/maxlat)
-                tmp = 1._r8 - tmp*tmp
+                tmp = sin(rlat(i)*pi*0.5_cdeps_real_kind/maxlat)
+                tmp = 1._cdeps_real_kind - tmp*tmp
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              end if
           end do
@@ -187,8 +187,8 @@ contains
              if (abs(rlat(i)) > maxlat) then
                 So_t(i) = t0_min
              else
-                tmp = sin(rlat(i)*pi*0.5_r8/maxlat)
-                tmp = 1._r8 - tmp*tmp*tmp*tmp
+                tmp = sin(rlat(i)*pi*0.5_cdeps_real_kind/maxlat)
+                tmp = 1._cdeps_real_kind - tmp*tmp*tmp*tmp
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              end if
           end do
@@ -198,8 +198,8 @@ contains
              if (abs(rlat(i)) > maxlat) then
                 So_t(i) = t0_min
              else
-                tmp = sin(rlat(i)*pi*0.5_r8/maxlat)
-                tmp = (2._r8 - tmp*tmp*tmp*tmp - tmp*tmp)*0.5_r8
+                tmp = sin(rlat(i)*pi*0.5_cdeps_real_kind/maxlat)
+                tmp = (2._cdeps_real_kind - tmp*tmp*tmp*tmp - tmp*tmp)*0.5_cdeps_real_kind
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              end if
           end do
@@ -210,7 +210,7 @@ contains
                 So_t(i) = t0_min
              else
                 tmp = (maxlat - abs(rlat(i)))/maxlat
-                tmp1 = 1._r8 - tmp
+                tmp1 = 1._cdeps_real_kind - tmp
                 So_t(i) = t0_max*tmp + t0_min*tmp1
              end if
           end do
@@ -220,12 +220,12 @@ contains
              if (abs(rlat(i)) > maxlat) then
                 So_t(i) = t0_min
              else if (rlat(i) > shift) then
-                tmp = sin((rlat(i)-shift)*pi*0.5_r8/(maxlat-shift))
-                tmp = 1._r8 - tmp*tmp
+                tmp = sin((rlat(i)-shift)*pi*0.5_cdeps_real_kind/(maxlat-shift))
+                tmp = 1._cdeps_real_kind - tmp*tmp
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              else
-                tmp = sin((rlat(i)-shift)*pi*0.5_r8/(maxlat+shift))
-                tmp = 1._r8 - tmp*tmp
+                tmp = sin((rlat(i)-shift)*pi*0.5_cdeps_real_kind/(maxlat+shift))
+                tmp = 1._cdeps_real_kind - tmp*tmp
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              end if
           end do
@@ -233,12 +233,12 @@ contains
        if (sst_option == 6) then ! 1KEQ
           do i = 1,lsize
              if (abs(rlat(i)-latcen) <= latrad6) then
-                tmp1 = cos((rlat(i)-latcen)*pi*0.5_r8/latrad6)
+                tmp1 = cos((rlat(i)-latcen)*pi*0.5_cdeps_real_kind/latrad6)
                 tmp1 = tmp1*tmp1
                 tmp = abs(rlon(i)-loncen)
-                tmp = min(tmp , 2._r8*pi-tmp)
+                tmp = min(tmp , 2._cdeps_real_kind*pi-tmp)
                 if(tmp <= lonrad) then
-                   tmp = cos(tmp*pi*0.5_r8/lonrad)
+                   tmp = cos(tmp*pi*0.5_cdeps_real_kind/lonrad)
                    tmp = tmp*tmp
                    So_t(i) = So_t(i) + t0_max6*tmp*tmp1
                 end if
@@ -248,12 +248,12 @@ contains
        if (sst_option == 7) then ! 3KEQ
           do i = 1, lsize
              if (abs(rlat(i)-latcen) <= latrad6) then
-                tmp1 = cos((rlat(i)-latcen)*pi*0.5_r8/latrad6)
+                tmp1 = cos((rlat(i)-latcen)*pi*0.5_cdeps_real_kind/latrad6)
                 tmp1 = tmp1*tmp1
                 tmp = abs(rlon(i)-loncen)
-                tmp = min(tmp , 2._r8*pi-tmp)
+                tmp = min(tmp , 2._cdeps_real_kind*pi-tmp)
                 if (tmp <= lonrad) then
-                   tmp = cos(tmp*pi*0.5_r8/lonrad)
+                   tmp = cos(tmp*pi*0.5_cdeps_real_kind/lonrad)
                    tmp = tmp*tmp
                    So_t(i) = So_t(i) + t0_max7*tmp*tmp1
                 end if
@@ -263,7 +263,7 @@ contains
        if (sst_option == 8) then ! 3KW1
           do i = 1, lsize
              if (abs(rlat(i)-latcen) <= latrad8) then
-                tmp1 = cos((rlat(i)-latcen)*pi*0.5_r8/latrad8)
+                tmp1 = cos((rlat(i)-latcen)*pi*0.5_cdeps_real_kind/latrad8)
                 tmp1 = tmp1*tmp1
                 tmp = cos(rlon(i)-loncen)
                 So_t(i) = So_t(i) + t0_max7*tmp*tmp1
@@ -275,12 +275,12 @@ contains
              if (abs(rlat(i)) > maxlat) then
                 So_t(i) = t0_min
              else if (rlat(i) > shift9) then
-                tmp = sin((rlat(i)-shift9)*pi*0.5_r8/(maxlat-shift9))
-                tmp = 1._r8 - tmp*tmp
+                tmp = sin((rlat(i)-shift9)*pi*0.5_cdeps_real_kind/(maxlat-shift9))
+                tmp = 1._cdeps_real_kind - tmp*tmp
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              else
-                tmp = sin((rlat(i)-shift9)*pi*0.5_r8/(maxlat+shift9))
-                tmp = 1._r8 - tmp*tmp
+                tmp = sin((rlat(i)-shift9)*pi*0.5_cdeps_real_kind/(maxlat+shift9))
+                tmp = 1._cdeps_real_kind - tmp*tmp
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              end if
           end do
@@ -290,12 +290,12 @@ contains
              if (abs(rlat(i)) > maxlat) then
                 So_t(i) = t0_min
              else if(rlat(i) > shift10) then
-                tmp = sin((rlat(i)-shift10)*pi*0.5_r8/(maxlat-shift10))
-                tmp = 1._r8 - tmp*tmp
+                tmp = sin((rlat(i)-shift10)*pi*0.5_cdeps_real_kind/(maxlat-shift10))
+                tmp = 1._cdeps_real_kind - tmp*tmp
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              else
-                tmp = sin((rlat(i)-shift10)*pi*0.5_r8/(maxlat+shift10))
-                tmp = 1._r8 - tmp*tmp
+                tmp = sin((rlat(i)-shift10)*pi*0.5_cdeps_real_kind/(maxlat+shift10))
+                tmp = 1._cdeps_real_kind - tmp*tmp
                 So_t(i) = tmp*(t0_max - t0_min) + t0_min
              end if
           end do
